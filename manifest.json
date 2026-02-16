@@ -1,1 +1,9 @@
-
+{
+  "name": "PRDV Tactical App",
+  "short_name": "PRDV",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#0f1a0f",
+  "theme_color": "#0f1a0f",
+  "icons": []
+}
