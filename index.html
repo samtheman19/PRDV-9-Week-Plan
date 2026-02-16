@@ -1,37 +1,53 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>PRDV Tactical Plan</title>
+  <title>PRDV Tactical App</title>
   <link rel="stylesheet" href="style.css">
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#0f1a0f">
 </head>
 <body>
 
-<h1>🪖 PRDV 9 Week Tactical Plan</h1>
+<h1>🪖 PRDV Tactical Performance</h1>
 
 <div class="controls">
-  <label>Select Week:</label>
+  <label>Week:</label>
   <select id="weekSelect" onchange="loadWeek()">
-    <option value="1">Week 1</option>
-    <option value="2">Week 2</option>
-    <option value="3">Week 3</option>
-    <option value="4">Week 4</option>
-    <option value="5">Week 5</option>
-    <option value="6">Week 6</option>
-    <option value="7">Week 7</option>
-    <option value="8">Week 8</option>
-    <option value="9">Week 9 (Taper)</option>
+    <option value="1">1</option>
+    <option value="2">2</option>
+    <option value="3">3</option>
+    <option value="4">4</option>
+    <option value="5">5</option>
+    <option value="6">6</option>
+    <option value="7">7</option>
+    <option value="8">8</option>
+    <option value="9">9</option>
   </select>
 </div>
 
+<div id="progress"></div>
 <div id="days"></div>
 
-<div class="timer">
-  <h2>Workout Timer</h2>
-  <div id="time">00:00</div>
-  <button onclick="startTimer()">Start</button>
-  <button onclick="stopTimer()">Stop</button>
-  <button onclick="resetTimer()">Reset</button>
-</div>
+<hr>
+
+<h2>⏱ Interval Timer</h2>
+<input type="number" id="workTime" placeholder="Work (sec)">
+<input type="number" id="restTime" placeholder="Rest (sec)">
+<input type="number" id="rounds" placeholder="Rounds">
+<br>
+<button onclick="startIntervals()">Start</button>
+<button onclick="stopIntervals()">Stop</button>
+<h3 id="intervalDisplay">Ready</h3>
+
+<hr>
+
+<h2>🎖 Standards Tracker</h2>
+<input id="pushups" placeholder="Max Push-ups">
+<input id="pullups" placeholder="Max Pull-ups">
+<input id="run2k" placeholder="2km Time (min)">
+<input id="tab15k" placeholder="15km Tab Time (min)">
+<button onclick="saveStandards()">Save</button>
+<div id="standardsDisplay"></div>
 
 <script src="script.js"></script>
 </body>
