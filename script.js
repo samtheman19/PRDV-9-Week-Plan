@@ -11,7 +11,8 @@ onAuthStateChanged }
 from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
 
 import { getFirestore, doc, setDoc, getDoc,
-collection, getDocs, query, orderBy, limit }
+collection, getDocs, query, orderBy, limit,
+addDoc }
 from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
 
 /* ===============================
@@ -38,11 +39,7 @@ const db = getFirestore(app);
 
 window.register = async function() {
   try {
-    await createUserWithEmailAndPassword(
-      auth,
-      email.value,
-      password.value
-    );
+    await createUserWithEmailAndPassword(auth, email.value, password.value);
   } catch (e) {
     alert(e.message);
   }
@@ -50,11 +47,7 @@ window.register = async function() {
 
 window.login = async function() {
   try {
-    await signInWithEmailAndPassword(
-      auth,
-      email.value,
-      password.value
-    );
+    await signInWithEmailAndPassword(auth, email.value, password.value);
   } catch (e) {
     alert(e.message);
   }
@@ -76,7 +69,7 @@ onAuthStateChanged(auth, (user) => {
 let splitTimer;
 
 /* ===============================
-   SAVE PERFORMANCE TO CLOUD
+   SAVE PERFORMANCE (HISTORY MODE)
 ================================ */
 
 window.savePerformance = async function() {
@@ -86,28 +79,50 @@ window.savePerformance = async function() {
     return;
   }
 
-  const pushups = localStorage.getItem("pushups") || 0;
-  const pullups = localStorage.getItem("pullups") || 0;
-  const fatigue = localStorage.getItem("fatigue") || 5;
+  const pushups = parseInt(localStorage.getItem("pushups")) || 0;
+  const pullups = parseInt(localStorage.getItem("pullups")) || 0;
+  const fatigue = parseInt(localStorage.getItem("fatigue")) || 5;
+  const mockDay = localStorage.getItem("mockDay") || null;
+
+  const readinessScore = (pushups * 2) + (pullups * 3) - (fatigue * 3);
+
+  /* ---- 1. Save Session History ---- */
+
+  await addDoc(
+    collection(db, "users", user.uid, "sessions"),
+    {
+      pushups,
+      pullups,
+      fatigue,
+      mockDay,
+      readinessScore,
+      timestamp: Date.now()
+    }
+  );
+
+  /* ---- 2. Update User Summary ---- */
 
   await setDoc(doc(db, "users", user.uid), {
-    pushups,
-    pullups,
-    fatigue,
+    email: user.email,
+    latestPushups: pushups,
+    latestPullups: pullups,
+    latestFatigue: fatigue,
+    latestReadiness: readinessScore,
     updated: Date.now()
   });
 
-  alert("Performance saved to cloud.");
+  alert("Session saved to history.");
 };
 
 /* ===============================
-   LEADERBOARD
+   LEADERBOARD (BY READINESS)
 ================================ */
 
 window.loadLeaderboard = async function() {
+
   const q = query(
     collection(db, "users"),
-    orderBy("pushups", "desc"),
+    orderBy("latestReadiness", "desc"),
     limit(10)
   );
 
@@ -115,7 +130,11 @@ window.loadLeaderboard = async function() {
 
   let html = "";
   snapshot.forEach(doc => {
-    html += doc.data().pushups + " push-ups<br>";
+    const data = doc.data();
+    html += `
+      ${data.email || "User"} 
+      — Readiness: ${data.latestReadiness || 0}<br>
+    `;
   });
 
   leaderboard.innerHTML = html;
@@ -206,21 +225,6 @@ function adaptiveEngine() {
     return "Add weighted pull-ups twice weekly.";
   return "Maintain intensity. Focus on tab speed.";
 }
-
-/* ===============================
-   EXPORT DATA
-================================ */
-
-window.exportData = function() {
-  const data = {
-    pushups: localStorage.getItem("pushups"),
-    pullups: localStorage.getItem("pullups"),
-    fatigue: localStorage.getItem("fatigue"),
-    mockDay: localStorage.getItem("mockDay")
-  };
-
-  console.log("Export Ready:", JSON.stringify(data));
-};
 
 /* ===============================
    AUTO LOAD
