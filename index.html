@@ -9,9 +9,7 @@
 
 <body>
 
-<!-- ===============================
-   FIXED NAVBAR
-================================ -->
+<!-- ================= NAVBAR ================= -->
 
 <div class="navbar">
   <div class="nav-title">🪖 PRDV Tactical</div>
@@ -23,6 +21,10 @@
 <div class="container">
 
 <h1>Performance Platform</h1>
+
+<!-- ================= TODAY'S MISSION ================= -->
+
+<div id="todayWorkout"></div>
 
 <!-- ================= LOGIN ================= -->
 
@@ -74,6 +76,41 @@
   <div id="readinessLabel" class="readiness green">
     GREEN
   </div>
+
+  <div id="recoveryInsight" style="margin-top:12px; opacity:0.7; font-size:14px;">
+    Recovery data loading...
+  </div>
+</div>
+
+<!-- ================= SAVE PERFORMANCE ================= -->
+
+<div class="card">
+  <h2>☁️ Save Performance</h2>
+
+  <input id="manualPushups" placeholder="Pushups">
+  <input id="manualPullups" placeholder="Pullups">
+  <input id="manualFatigue" placeholder="Fatigue (1-10)">
+  <input id="sleepHours" placeholder="Sleep (hours)">
+
+  <div class="button-row">
+    <button onclick="setManualData()">Set Test Data</button>
+    <button class="success" onclick="savePerformance()">Save</button>
+  </div>
+</div>
+
+<!-- ================= RANK SYSTEM ================= -->
+
+<div class="card">
+  <h2>🎖 Rank Progression</h2>
+  <div id="rankStatus">Recruit</div>
+</div>
+
+<!-- ================= SPLIT COACH ================= -->
+
+<div class="card">
+  <h2>🎧 400m Split Coach</h2>
+  <button class="primary" onclick="startSplitCoach()">Start 400m Beep Coach</button>
+  <div id="splitDisplay"></div>
 </div>
 
 <!-- ================= MOCK MODE ================= -->
@@ -90,43 +127,6 @@
   <div id="mockDisplay"></div>
 </div>
 
-<!-- ================= SPLIT COACH ================= -->
-
-<div class="card">
-  <h2>🎧 400m Split Coach</h2>
-  <button class="primary" onclick="startSplitCoach()">Start 400m Beep Coach</button>
-  <div id="splitDisplay"></div>
-</div>
-
-<!-- ================= RISK ================= -->
-
-<div class="card">
-  <h2>🧠 Risk Analysis</h2>
-  <div id="riskDisplay"></div>
-</div>
-
-<!-- ================= SAVE PERFORMANCE ================= -->
-
-<div class="card">
-  <h2>☁️ Save Performance</h2>
-
-  <input id="manualPushups" placeholder="Pushups">
-  <input id="manualPullups" placeholder="Pullups">
-  <input id="manualFatigue" placeholder="Fatigue (1-10)">
-
-  <div class="button-row">
-    <button onclick="setManualData()">Set Test Data</button>
-    <button class="success" onclick="savePerformance()">Save</button>
-  </div>
-</div>
-
-<!-- ================= RANK SYSTEM ================= -->
-
-<div class="card">
-  <h2>🎖 Rank Progression</h2>
-  <div id="rankStatus">Recruit</div>
-</div>
-
 <!-- ================= ANALYTICS ================= -->
 
 <div class="card">
@@ -139,13 +139,16 @@
   <h3>Fatigue Trend</h3>
   <canvas id="fatigueTrend" height="120"></canvas>
 
+  <h3>Sleep Trend</h3>
+  <canvas id="sleepTrend" height="120"></canvas>
+
   <h3>Session History</h3>
   <div id="sessionHistory"></div>
 </div>
 
 </div>
 
-<!-- ================= BOTTOM ACTION BAR ================= -->
+<!-- ================= BOTTOM BAR ================= -->
 
 <div class="bottom-bar">
   <button onclick="loadLeaderboard()">🏆 Leaderboard</button>
