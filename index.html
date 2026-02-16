@@ -25,16 +25,10 @@
 
 <h1>Tactical Performance System</h1>
 
-<!-- ===============================
-   ELITE DASHBOARD
-================================ -->
-
+<!-- ELITE DASHBOARD -->
 <div id="todayWorkout"></div>
 
-<!-- ===============================
-   LOGIN SYSTEM
-================================ -->
-
+<!-- LOGIN -->
 <div class="card">
   <h2>🔐 Login</h2>
 
@@ -47,24 +41,16 @@
     <button onclick="logout()">Logout</button>
   </div>
 
-  <!-- 🔥 THIS WAS MISSING -->
   <div id="userStatus" style="margin-top:12px;font-weight:600;"></div>
-
 </div>
 
-<!-- ===============================
-   READINESS PANEL
-================================ -->
-
+<!-- RECOVERY -->
 <div class="card center">
   <h2>🟢 Recovery Status</h2>
   <div id="recoveryInsight"></div>
 </div>
 
-<!-- ===============================
-   SAVE PERFORMANCE
-================================ -->
-
+<!-- SAVE PERFORMANCE -->
 <div class="card">
   <h2>📊 Save Performance</h2>
 
@@ -75,15 +61,13 @@
   <input id="twoKmTime" placeholder="2KM Time (seconds)">
 
   <div class="button-row">
-    <button class="success" onclick="savePerformance()">Save Performance</button>
+    <button class="success" onclick="savePerformance()">
+      Save Performance
+    </button>
   </div>
-
 </div>
 
-<!-- ===============================
-   ANALYTICS
-================================ -->
-
+<!-- ANALYTICS -->
 <div class="card">
   <h2>📈 Analytics</h2>
 
@@ -93,36 +77,32 @@
   <canvas id="vo2Trend" height="120"></canvas>
 </div>
 
-<!-- ===============================
-   SELECTION MODULE
-================================ -->
-
+<!-- SELECTION -->
 <div class="card">
   <h2>🎯 Selection</h2>
 
   <div class="button-row">
-    <button onclick="showSelectionDashboard()">View Selection Score</button>
-    <button onclick="runSelectionSimulation()">Run Simulation</button>
+    <button onclick="showSelectionDashboard()">
+      View Selection Score
+    </button>
+    <button onclick="runSelectionSimulation()">
+      Run Simulation
+    </button>
   </div>
 
   <div id="selectionOutput" style="margin-top:15px;"></div>
 </div>
 
-<!-- ===============================
-   PROGRAM MODULE
-================================ -->
-
+<!-- PROGRAM -->
 <div class="card">
   <h2>📅 Program</h2>
+
   <button onclick="showCalendar()">Show Calendar</button>
+
   <div id="programOutput" style="margin-top:15px;"></div>
 </div>
 
 </div>
-
-<!-- ===============================
-   SCRIPTS
-================================ -->
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script type="module" src="script.js"></script>
