@@ -1,5 +1,5 @@
 /* ===============================
-   FIREBASE IMPORTS (v12.9.0)
+   FIREBASE IMPORTS
 ================================ */
 
 import { initializeApp } from 
@@ -10,9 +10,9 @@ signInWithEmailAndPassword, signOut,
 onAuthStateChanged }
 from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
 
-import { getFirestore, doc, setDoc, getDoc,
-collection, getDocs, query, orderBy, limit,
-addDoc }
+import { getFirestore, doc, setDoc,
+collection, getDocs, query,
+orderBy, limit, addDoc }
 from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
 
 /* ===============================
@@ -63,16 +63,11 @@ onAuthStateChanged(auth, (user) => {
 });
 
 /* ===============================
-   GLOBAL STATE
-================================ */
-
-let splitTimer;
-
-/* ===============================
-   SAVE PERFORMANCE (HISTORY MODE)
+   SAVE PERFORMANCE
 ================================ */
 
 window.savePerformance = async function() {
+
   const user = auth.currentUser;
   if (!user) {
     alert("Login first.");
@@ -84,10 +79,10 @@ window.savePerformance = async function() {
   const fatigue = parseInt(localStorage.getItem("fatigue")) || 5;
   const mockDay = localStorage.getItem("mockDay") || null;
 
-  const readinessScore = (pushups * 2) + (pullups * 3) - (fatigue * 3);
+  const readinessScore =
+    (pushups * 2) + (pullups * 3) - (fatigue * 3);
 
-  /* ---- 1. Save Session History ---- */
-
+  // Save session history
   await addDoc(
     collection(db, "users", user.uid, "sessions"),
     {
@@ -100,8 +95,7 @@ window.savePerformance = async function() {
     }
   );
 
-  /* ---- 2. Update User Summary ---- */
-
+  // Update summary
   await setDoc(doc(db, "users", user.uid), {
     email: user.email,
     latestPushups: pushups,
@@ -111,11 +105,11 @@ window.savePerformance = async function() {
     updated: Date.now()
   });
 
-  alert("Session saved to history.");
+  alert("Session saved.");
 };
 
 /* ===============================
-   LEADERBOARD (BY READINESS)
+   LEADERBOARD
 ================================ */
 
 window.loadLeaderboard = async function() {
@@ -129,6 +123,7 @@ window.loadLeaderboard = async function() {
   const snapshot = await getDocs(q);
 
   let html = "";
+
   snapshot.forEach(doc => {
     const data = doc.data();
     html += `
@@ -141,33 +136,102 @@ window.loadLeaderboard = async function() {
 };
 
 /* ===============================
-   3-DAY MOCK MODE
+   ANALYTICS DASHBOARD
+================================ */
+
+window.loadAnalytics = async function() {
+
+  const user = auth.currentUser;
+  if (!user) {
+    alert("Login first.");
+    return;
+  }
+
+  const q = query(
+    collection(db, "users", user.uid, "sessions"),
+    orderBy("timestamp", "asc")
+  );
+
+  const snapshot = await getDocs(q);
+
+  let pushups = [];
+  let fatigue = [];
+  let labels = [];
+  let historyHTML = "";
+  let count = 1;
+
+  snapshot.forEach(doc => {
+    const data = doc.data();
+
+    pushups.push(data.pushups);
+    fatigue.push(data.fatigue);
+    labels.push("S" + count);
+
+    historyHTML += `
+      Session ${count} —
+      Pushups: ${data.pushups},
+      Pullups: ${data.pullups},
+      Fatigue: ${data.fatigue}<br>
+    `;
+
+    count++;
+  });
+
+  sessionHistory.innerHTML = historyHTML;
+
+  new Chart(pushupTrend, {
+    type: "line",
+    data: {
+      labels: labels,
+      datasets: [{
+        label: "Pushups",
+        data: pushups
+      }]
+    }
+  });
+
+  new Chart(fatigueTrend, {
+    type: "line",
+    data: {
+      labels: labels,
+      datasets: [{
+        label: "Fatigue",
+        data: fatigue
+      }]
+    }
+  });
+};
+
+/* ===============================
+   MOCK MODE
 ================================ */
 
 window.startMockDay = function(day) {
-  const display = document.getElementById("mockDisplay");
-
   if (day === 1)
-    display.innerText = "Day 1: 2KM + Push/Pull Test";
+    mockDisplay.innerText = "Day 1: 2KM + Push/Pull Test";
   if (day === 2)
-    display.innerText = "Day 2: 15KM Loaded Tab Simulation";
+    mockDisplay.innerText = "Day 2: 15KM Loaded Tab";
   if (day === 3)
-    display.innerText = "Day 3: Hills + Circuit Under Fatigue";
+    mockDisplay.innerText = "Day 3: Hills + Circuit";
 
   localStorage.setItem("mockDay", day);
 };
 
 /* ===============================
-   SPLIT COACH (400m)
+   SPLIT COACH
 ================================ */
 
+let splitTimer;
+
 window.startSplitCoach = function() {
+
   let splits = 5;
   let targetTime = 480;
   let splitTime = targetTime / splits;
   let current = 1;
 
   splitTimer = setInterval(() => {
+
     if (current > splits) {
       clearInterval(splitTimer);
       splitDisplay.innerText = "2KM COMPLETE";
@@ -189,15 +253,17 @@ function beep() {
 }
 
 /* ===============================
-   FATIGUE + INJURY RISK
+   RISK ANALYSIS
 ================================ */
 
 function riskAnalysis() {
+
   let fatigue = parseInt(localStorage.getItem("fatigue")) || 5;
   let pushups = parseInt(localStorage.getItem("pushups")) || 0;
 
-  let injuryRisk = fatigue > 7 ? "HIGH" :
-                   fatigue > 5 ? "MODERATE" : "LOW";
+  let injuryRisk =
+    fatigue > 7 ? "HIGH" :
+    fatigue > 5 ? "MODERATE" : "LOW";
 
   let overtraining =
     (fatigue > 8 && pushups < 30) ? "YES" : "NO";
@@ -208,29 +274,6 @@ function riskAnalysis() {
   `;
 }
 
-/* ===============================
-   ADAPTIVE ENGINE
-================================ */
-
-function adaptiveEngine() {
-  let fatigue = parseInt(localStorage.getItem("fatigue")) || 5;
-  let pushups = parseInt(localStorage.getItem("pushups")) || 0;
-  let pullups = parseInt(localStorage.getItem("pullups")) || 0;
-
-  if (fatigue > 8)
-    return "Reduce volume 20% this week.";
-  if (pushups < 35)
-    return "Increase push-up density sessions.";
-  if (pullups < 10)
-    return "Add weighted pull-ups twice weekly.";
-  return "Maintain intensity. Focus on tab speed.";
-}
-
-/* ===============================
-   AUTO LOAD
-================================ */
-
 window.onload = function() {
   riskAnalysis();
-  console.log("Adaptive Advice:", adaptiveEngine());
 };
