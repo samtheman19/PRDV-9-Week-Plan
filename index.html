@@ -61,11 +61,34 @@
 
 <!-- ================= LEADERBOARD ================= -->
 
-<h2>🏆 Leaderboard (Push-ups)</h2>
+<h2>🏆 Leaderboard (Readiness)</h2>
 <button onclick="loadLeaderboard()">Load Leaderboard</button>
 <div id="leaderboard"></div>
 
-<!-- IMPORTANT: LOAD AS MODULE -->
+<hr>
+
+<!-- ================= ANALYTICS ================= -->
+
+<h2>📊 Performance Analytics</h2>
+<button onclick="loadAnalytics()">Load My Analytics</button>
+
+<h3>Push-up Trend</h3>
+<canvas id="pushupTrend" height="120"></canvas>
+
+<h3>Fatigue Trend</h3>
+<canvas id="fatigueTrend" height="120"></canvas>
+
+<h3>Session History</h3>
+<div id="sessionHistory"></div>
+
+<hr>
+
+<!-- ================= LIBRARIES ================= -->
+
+<!-- Chart.js for graphs -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<!-- Main Firebase Script (must be module) -->
 <script type="module" src="script.js"></script>
 
 </body>
