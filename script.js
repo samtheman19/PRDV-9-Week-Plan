@@ -1,132 +1,108 @@
-/* ---------------- PLAN DATA ---------------- */
-
-const plan = {
-  1: { Mon:"Push ladder + Pull-ups", Tue:"6x400m", Wed:"8km 15kg" },
-  2: { Tue:"3x800m", Wed:"10km 18kg" },
-  3: { Tue:"2km TT", Wed:"12km 18kg" },
-  4: { Wed:"12km 20kg" },
-  5: { Wed:"14km 20kg" },
-  6: { Wed:"15km 22kg" },
-  7: { Fri:"2km", Sat:"16km 25kg" },
-  8: { Wed:"12km 20kg" },
-  9: { Wed:"6km 15kg (Taper)" }
-};
-
-/* ---------------- LOAD WEEK ---------------- */
-
-function loadWeek() {
-  const week = document.getElementById("weekSelect").value;
-  const daysDiv = document.getElementById("days");
-  daysDiv.innerHTML = "";
-
-  for (const day in plan[week]) {
-    const key = `week${week}-${day}`;
-    const done = localStorage.getItem(key) === "true";
-
-    const card = document.createElement("div");
-    card.className = "day-card";
-    card.innerHTML = `
-      <strong>${day}</strong><br>
-      ${plan[week][day]}<br>
-      <input type="checkbox" ${done ? "checked":""}
-      onchange="toggle('${key}', this.checked)">
-    `;
-    daysDiv.appendChild(card);
-  }
-}
-
-function toggle(key, val) {
-  localStorage.setItem(key, val);
-}
-
-/* ---------------- INTERVAL TIMER WITH BEEP ---------------- */
-
-let interval;
-let audio = new Audio("https://actions.google.com/sounds/v1/alarms/beep_short.ogg");
-
-function startIntervals() {
-  let work = parseInt(document.getElementById("workTime").value);
-  let rest = parseInt(document.getElementById("restTime").value);
-  let rounds = parseInt(document.getElementById("rounds").value);
-
-  let currentRound = 1;
-  let isWork = true;
-
-  function runPhase() {
-    if (currentRound > rounds) {
-      document.getElementById("intervalDisplay").innerText = "Done";
-      return;
-    }
-
-    let time = isWork ? work : rest;
-    document.getElementById("intervalDisplay").innerText =
-      (isWork ? "WORK" : "REST") + " - Round " + currentRound;
-
-    audio.play();
-
-    setTimeout(() => {
-      if (!isWork) currentRound++;
-      isWork = !isWork;
-      runPhase();
-    }, time * 1000);
-  }
-
-  runPhase();
-}
-
-/* ---------------- PUSH-UP GRAPH ---------------- */
-
-function saveStandards() {
-  const pushups = document.getElementById("pushups").value;
-
-  let history = JSON.parse(localStorage.getItem("pushupHistory")) || [];
-  history.push({ date: new Date().toLocaleDateString(), value: pushups });
-  localStorage.setItem("pushupHistory", JSON.stringify(history));
-
-  updateGraph();
-  calculateReadiness();
-}
-
-function updateGraph() {
-  let history = JSON.parse(localStorage.getItem("pushupHistory")) || [];
-
-  const ctx = document.getElementById("pushupChart").getContext("2d");
-  new Chart(ctx, {
-    type: 'line',
-    data: {
-      labels: history.map(h => h.date),
-      datasets: [{
-        label: 'Push-ups',
-        data: history.map(h => h.value),
-        borderColor: '#d4ff00'
-      }]
-    }
-  });
-}
-
-updateGraph();
-
-/* ---------------- FATIGUE TRACKER ---------------- */
-
-function saveFatigue() {
-  let value = document.getElementById("fatigue").value;
-  localStorage.setItem("fatigue", value);
-  document.getElementById("fatigueDisplay").innerText =
-    "Fatigue Level: " + value + "/10";
-  calculateReadiness();
-}
+/* ---------- READINESS & RANK SYSTEM ---------- */
 
 function calculateReadiness() {
-  let pushups = document.getElementById("pushups").value || 0;
-  let fatigue = localStorage.getItem("fatigue") || 5;
+  let pushups = parseInt(document.getElementById("pushups").value) || 0;
+  let pullups = parseInt(document.getElementById("pullups").value) || 0;
+  let fatigue = parseInt(localStorage.getItem("fatigue")) || 5;
 
-  let score = (pushups * 2) - (fatigue * 3);
-
+  let score = (pushups * 2) + (pullups * 3) - (fatigue * 3);
   if (score < 0) score = 0;
   if (score > 100) score = 100;
 
   document.getElementById("readinessScore").innerText =
     "Readiness Score: " + score + "%";
+
+  updateRank(score);
+  updateSelectionStatus(score);
 }
 
-loadWeek();
+function updateRank(score) {
+  let rank = "Recruit";
+
+  if (score > 80) rank = "🪖 Operator";
+  else if (score > 65) rank = "🔥 Advanced";
+  else if (score > 50) rank = "⚔ Soldier";
+  else if (score > 35) rank = "🟢 Trained";
+  else rank = "🔰 Recruit";
+
+  document.getElementById("rankDisplay").innerText = rank;
+}
+
+function updateSelectionStatus(score) {
+  const status = document.getElementById("selectionStatus");
+
+  if (score > 75) {
+    status.innerText = "SELECTION READY";
+    status.className = "ready";
+  } else if (score > 50) {
+    status.innerText = "BUILDING CAPACITY";
+    status.className = "warning";
+  } else {
+    status.innerText = "NOT READY";
+    status.className = "fail";
+  }
+}
+
+/* ---------- FATIGUE SYSTEM ---------- */
+
+function saveFatigue() {
+  let value = document.getElementById("fatigue").value;
+  localStorage.setItem("fatigue", value);
+
+  const display = document.getElementById("fatigueDisplay");
+  display.innerText = "Fatigue: " + value + "/10";
+
+  if (value >= 8) display.className = "fail";
+  else if (value >= 5) display.className = "warning";
+  else display.className = "ready";
+
+  calculateReadiness();
+}
+
+/* ---------- SAVE STANDARDS ---------- */
+
+function saveStandards() {
+  localStorage.setItem("pushups", document.getElementById("pushups").value);
+  localStorage.setItem("pullups", document.getElementById("pullups").value);
+
+  calculateReadiness();
+}
+
+/* ---------- 2KM RACE MODE ---------- */
+
+let raceTimer;
+
+function start2kMode() {
+  let timeLeft = 480; // 8 minutes baseline
+
+  document.getElementById("raceModeDisplay").innerText = "GO!";
+
+  raceTimer = setInterval(() => {
+    timeLeft--;
+
+    let mins = Math.floor(timeLeft / 60);
+    let secs = timeLeft % 60;
+
+    document.getElementById("raceModeDisplay").innerText =
+      mins + ":" + (secs < 10 ? "0" + secs : secs);
+
+    if (timeLeft === 0) {
+      clearInterval(raceTimer);
+      document.getElementById("raceModeDisplay").innerText = "FINISH";
+    }
+
+  }, 1000);
+}
+
+/* ---------- LOAD SAVED DATA ---------- */
+
+window.onload = function() {
+  document.getElementById("pushups").value =
+    localStorage.getItem("pushups") || "";
+  document.getElementById("pullups").value =
+    localStorage.getItem("pullups") || "";
+  document.getElementById("fatigue").value =
+    localStorage.getItem("fatigue") || 5;
+
+  saveFatigue();
+};
