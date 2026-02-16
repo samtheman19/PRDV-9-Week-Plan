@@ -23,14 +23,16 @@ import {
 } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
 
 /* ===============================
-   FIREBASE CONFIG
-   ⚠️ REPLACE WITH YOUR REAL KEYS
+   FIREBASE CONFIG (LIVE)
 ================================ */
 
 const firebaseConfig = {
-  apiKey: "YOUR_REAL_API_KEY",
+  apiKey: "AIzaSyD7sHTLny_kAtTN_xXmkovFC-GSTtFMeNo",
   authDomain: "prdv-platform.firebaseapp.com",
-  projectId: "prdv-platform"
+  projectId: "prdv-platform",
+  storageBucket: "prdv-platform.firebasestorage.app",
+  messagingSenderId: "578412239135",
+  appId: "1:578412239135:web:7680746ea4df63246df82a"
 };
 
 const app = initializeApp(firebaseConfig);
@@ -50,7 +52,6 @@ window.register = async () => {
       email.value,
       password.value
     );
-    alert("Account created successfully.");
   } catch (e) {
     alert(e.message);
   }
@@ -63,7 +64,6 @@ window.login = async () => {
       email.value,
       password.value
     );
-    alert("Login successful.");
   } catch (e) {
     alert(e.message);
   }
@@ -71,7 +71,6 @@ window.login = async () => {
 
 window.logout = async () => {
   await signOut(auth);
-  alert("Logged out.");
 };
 
 /* ===============================
@@ -81,6 +80,7 @@ window.logout = async () => {
 onAuthStateChanged(auth, (user) => {
 
   const status = document.getElementById("userStatus");
+
   if (!status) return;
 
   if (user) {
@@ -103,11 +103,7 @@ onAuthStateChanged(auth, (user) => {
 ================================ */
 
 function calculateXP(push, pull, twoKm) {
-  let xp = 0;
-  xp += push * 2;
-  xp += pull * 4;
-  xp += Math.max(0, 500 - twoKm);
-  return xp;
+  return (push * 2) + (pull * 4) + Math.max(0, 500 - twoKm);
 }
 
 function getRank(xp) {
@@ -124,6 +120,7 @@ function getRank(xp) {
 ================================ */
 
 function recoveryScore(push, pull, fatigue, sleep) {
+
   const sleepBonus =
     sleep >= 8 ? 15 :
     sleep >= 7 ? 10 :
@@ -139,12 +136,12 @@ function recoveryState(score) {
 }
 
 /* ===============================
-   MISSION GENERATOR
+   MISSION ENGINE
 ================================ */
 
 function missionGenerator(twoKm, state) {
 
-  let pace = twoKm / 5;
+  const pace = twoKm / 5;
 
   if (state === "GREEN")
     return `8 x 400m @ ${(pace - 2).toFixed(1)}s`;
