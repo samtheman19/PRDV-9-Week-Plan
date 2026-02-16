@@ -9,9 +9,20 @@
 
 <body>
 
-<h1>🪖 PRDV Tactical Performance Platform</h1>
+<!-- ===============================
+   FIXED NAVBAR
+================================ -->
 
-<hr>
+<div class="navbar">
+  <div class="nav-title">🪖 PRDV Tactical</div>
+  <div class="nav-actions">
+    <button onclick="toggleOperatorMode()">Operator Mode</button>
+  </div>
+</div>
+
+<div class="container">
+
+<h1>Performance Platform</h1>
 
 <!-- ================= LOGIN ================= -->
 
@@ -30,15 +41,24 @@
   <div id="userStatus">Not logged in</div>
 </div>
 
+<!-- ================= READINESS ================= -->
+
+<div class="card">
+  <h2>🟢 Readiness Status</h2>
+  <div id="readinessBadge" class="readiness green">
+    GREEN • Score 8.0
+  </div>
+</div>
+
 <!-- ================= MOCK MODE ================= -->
 
 <div class="card">
   <h2>🏁 3-Day PRDV Mock Mode</h2>
 
   <div class="button-row">
-    <button onclick="startMockDay(1)">Start Day 1</button>
-    <button onclick="startMockDay(2)">Start Day 2</button>
-    <button onclick="startMockDay(3)">Start Day 3</button>
+    <button onclick="startMockDay(1)">Day 1</button>
+    <button onclick="startMockDay(2)">Day 2</button>
+    <button onclick="startMockDay(3)">Day 3</button>
   </div>
 
   <div id="mockDisplay"></div>
@@ -48,11 +68,7 @@
 
 <div class="card">
   <h2>🎧 400m Split Coach</h2>
-
-  <button class="primary" onclick="startSplitCoach()">
-    Start 400m Beep Coach
-  </button>
-
+  <button class="primary" onclick="startSplitCoach()">Start 400m Beep Coach</button>
   <div id="splitDisplay"></div>
 </div>
 
@@ -74,26 +90,21 @@
 
   <div class="button-row">
     <button onclick="setManualData()">Set Test Data</button>
-    <button class="primary" onclick="savePerformance()">
-      Save Current Performance
-    </button>
+    <button class="success" onclick="savePerformance()">Save</button>
   </div>
 </div>
 
-<!-- ================= LEADERBOARD ================= -->
+<!-- ================= RANK SYSTEM ================= -->
 
 <div class="card">
-  <h2>🏆 Leaderboard (Readiness)</h2>
-
-  <button onclick="loadLeaderboard()">Load Leaderboard</button>
-  <div id="leaderboard"></div>
+  <h2>🎖 Rank Progression</h2>
+  <div id="rankStatus">Recruit</div>
 </div>
 
 <!-- ================= ANALYTICS ================= -->
 
 <div class="card">
   <h2>📊 Performance Analytics</h2>
-
   <button onclick="loadAnalytics()">Load My Analytics</button>
 
   <h3>Push-up Trend</h3>
@@ -106,7 +117,16 @@
   <div id="sessionHistory"></div>
 </div>
 
-<!-- Chart.js CDN -->
+</div>
+
+<!-- ================= BOTTOM ACTION BAR ================= -->
+
+<div class="bottom-bar">
+  <button onclick="loadLeaderboard()">🏆 Leaderboard</button>
+  <button onclick="exportData()">📤 Export</button>
+</div>
+
+<!-- Chart.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <!-- Firebase Script -->
