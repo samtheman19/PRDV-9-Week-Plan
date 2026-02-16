@@ -307,3 +307,7 @@ window.setManualData = function() {
 window.toggleOperatorMode = function() {
   document.body.classList.toggle("operator");
 };
+
+window.exportData = function() {
+  alert("Export feature coming soon.");
+};
