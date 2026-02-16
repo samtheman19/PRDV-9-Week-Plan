@@ -4,7 +4,7 @@
   <title>PRDV Tactical Platform</title>
   <link rel="stylesheet" href="style.css">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="theme-color" content="#0f1a0f">
+  <meta name="theme-color" content="#000000">
 </head>
 
 <body>
@@ -12,69 +12,101 @@
 <h1>🪖 PRDV Tactical Performance Platform</h1>
 
 <hr>
-<h2>🔐 Login</h2>
 
-<input id="email" placeholder="Email">
-<input id="password" type="password" placeholder="Password">
+<!-- ================= LOGIN ================= -->
 
-<button onclick="register()">Register</button>
-<button onclick="login()">Login</button>
-<button onclick="logout()">Logout</button>
+<div class="card">
+  <h2>🔐 Login</h2>
 
-<div id="userStatus">Not logged in</div>
+  <input id="email" placeholder="Email">
+  <input id="password" type="password" placeholder="Password">
 
-<hr>
-<h2>🏁 3-Day PRDV Mock Mode</h2>
+  <div class="button-row">
+    <button onclick="register()">Register</button>
+    <button class="primary" onclick="login()">Login</button>
+    <button onclick="logout()">Logout</button>
+  </div>
 
-<button onclick="startMockDay(1)">Start Day 1</button>
-<button onclick="startMockDay(2)">Start Day 2</button>
-<button onclick="startMockDay(3)">Start Day 3</button>
+  <div id="userStatus">Not logged in</div>
+</div>
 
-<div id="mockDisplay"></div>
+<!-- ================= MOCK MODE ================= -->
 
-<hr>
-<h2>🎧 400m Split Coach</h2>
+<div class="card">
+  <h2>🏁 3-Day PRDV Mock Mode</h2>
 
-<button onclick="startSplitCoach()">Start 400m Beep Coach</button>
-<div id="splitDisplay"></div>
+  <div class="button-row">
+    <button onclick="startMockDay(1)">Start Day 1</button>
+    <button onclick="startMockDay(2)">Start Day 2</button>
+    <button onclick="startMockDay(3)">Start Day 3</button>
+  </div>
 
-<hr>
-<h2>🧠 Risk Analysis</h2>
-<div id="riskDisplay"></div>
+  <div id="mockDisplay"></div>
+</div>
 
-<hr>
-<h2>☁️ Save Performance</h2>
+<!-- ================= SPLIT COACH ================= -->
 
-<!-- 🔥 NEW MANUAL INPUT SECTION -->
-<input id="manualPushups" placeholder="Pushups">
-<input id="manualPullups" placeholder="Pullups">
-<input id="manualFatigue" placeholder="Fatigue (1-10)">
-<button onclick="setManualData()">Set Test Data</button>
+<div class="card">
+  <h2>🎧 400m Split Coach</h2>
 
-<br><br>
+  <button class="primary" onclick="startSplitCoach()">
+    Start 400m Beep Coach
+  </button>
 
-<button onclick="savePerformance()">Save Current Performance</button>
+  <div id="splitDisplay"></div>
+</div>
 
-<hr>
-<h2>🏆 Leaderboard (Readiness)</h2>
-<button onclick="loadLeaderboard()">Load Leaderboard</button>
-<div id="leaderboard"></div>
+<!-- ================= RISK ================= -->
 
-<hr>
-<h2>📊 Performance Analytics</h2>
+<div class="card">
+  <h2>🧠 Risk Analysis</h2>
+  <div id="riskDisplay"></div>
+</div>
 
-<button onclick="loadAnalytics()">Load My Analytics</button>
+<!-- ================= SAVE PERFORMANCE ================= -->
 
-<h3>Push-up Trend</h3>
-<canvas id="pushupTrend" height="120"></canvas>
+<div class="card">
+  <h2>☁️ Save Performance</h2>
 
-<h3>Fatigue Trend</h3>
-<canvas id="fatigueTrend" height="120"></canvas>
+  <input id="manualPushups" placeholder="Pushups">
+  <input id="manualPullups" placeholder="Pullups">
+  <input id="manualFatigue" placeholder="Fatigue (1-10)">
 
-<h3>Session History</h3>
-<div id="sessionHistory"></div>
+  <div class="button-row">
+    <button onclick="setManualData()">Set Test Data</button>
+    <button class="primary" onclick="savePerformance()">
+      Save Current Performance
+    </button>
+  </div>
+</div>
 
-<!-- Chart.js -->
+<!-- ================= LEADERBOARD ================= -->
+
+<div class="card">
+  <h2>🏆 Leaderboard (Readiness)</h2>
+
+  <button onclick="loadLeaderboard()">Load Leaderboard</button>
+  <div id="leaderboard"></div>
+</div>
+
+<!-- ================= ANALYTICS ================= -->
+
+<div class="card">
+  <h2>📊 Performance Analytics</h2>
+
+  <button onclick="loadAnalytics()">Load My Analytics</button>
+
+  <h3>Push-up Trend</h3>
+  <canvas id="pushupTrend" height="120"></canvas>
+
+  <h3>Fatigue Trend</h3>
+  <canvas id="fatigueTrend" height="120"></canvas>
+
+  <h3>Session History</h3>
+  <div id="sessionHistory"></div>
+</div>
+
+<!-- Chart.js CDN -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <!-- Firebase Script -->
