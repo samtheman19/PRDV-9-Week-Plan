@@ -43,10 +43,36 @@
 
 <!-- ================= READINESS ================= -->
 
-<div class="card">
+<div class="card center">
   <h2>🟢 Readiness Status</h2>
-  <div id="readinessBadge" class="readiness green">
-    GREEN • Score 8.0
+
+  <div class="ring-container">
+    <svg class="progress-ring" width="140" height="140">
+      <circle
+        class="progress-ring__background"
+        stroke="#1f2937"
+        stroke-width="10"
+        fill="transparent"
+        r="60"
+        cx="70"
+        cy="70"
+      />
+      <circle
+        class="progress-ring__circle"
+        stroke="#10b981"
+        stroke-width="10"
+        fill="transparent"
+        r="60"
+        cx="70"
+        cy="70"
+      />
+    </svg>
+
+    <div id="scoreValue" class="ring-score">0</div>
+  </div>
+
+  <div id="readinessLabel" class="readiness green">
+    GREEN
   </div>
 </div>
 
