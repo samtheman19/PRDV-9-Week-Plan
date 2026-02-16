@@ -313,3 +313,30 @@ function updateRank(pushups) {
 
   document.getElementById("rankStatus").innerText = rank;
 }
+
+function updateReadinessUI(score) {
+
+  const circle = document.querySelector(".progress-ring__circle");
+  const radius = circle.r.baseVal.value;
+  const circumference = 2 * Math.PI * radius;
+
+  const percent = Math.min(score / 150, 1); // cap at 150
+  const offset = circumference - percent * circumference;
+
+  circle.style.strokeDashoffset = offset;
+
+  document.getElementById("scoreValue").innerText = score;
+
+  const label = document.getElementById("readinessLabel");
+
+  if (score >= 100) {
+    label.className = "readiness green";
+    label.innerText = "GREEN • READY";
+  } else if (score >= 60) {
+    label.className = "readiness amber";
+    label.innerText = "AMBER • BUILDING";
+  } else {
+    label.className = "readiness red";
+    label.innerText = "RED • IMPROVE";
+  }
+}
