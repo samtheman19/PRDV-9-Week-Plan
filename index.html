@@ -5,7 +5,9 @@
   <link rel="stylesheet" href="style.css">
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#0f1a0f">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
+
 <body>
 
 <h1>🪖 PRDV Tactical Performance</h1>
@@ -13,15 +15,15 @@
 <div class="controls">
   <label>Week:</label>
   <select id="weekSelect" onchange="loadWeek()">
-    <option value="1">1</option>
-    <option value="2">2</option>
-    <option value="3">3</option>
-    <option value="4">4</option>
-    <option value="5">5</option>
-    <option value="6">6</option>
-    <option value="7">7</option>
-    <option value="8">8</option>
-    <option value="9">9</option>
+    <option value="1">Week 1</option>
+    <option value="2">Week 2</option>
+    <option value="3">Week 3</option>
+    <option value="4">Week 4</option>
+    <option value="5">Week 5</option>
+    <option value="6">Week 6</option>
+    <option value="7">Week 7</option>
+    <option value="8">Week 8</option>
+    <option value="9">Week 9 (Taper)</option>
   </select>
 </div>
 
@@ -49,6 +51,28 @@
 <button onclick="saveStandards()">Save</button>
 <div id="standardsDisplay"></div>
 
+<hr>
+
+<h2>📈 Push-up Progress</h2>
+<canvas id="pushupChart" width="300" height="150"></canvas>
+
+<hr>
+
+<h2>🧠 Fatigue Tracker</h2>
+<input type="range" id="fatigue" min="1" max="10">
+<button onclick="saveFatigue()">Save Fatigue</button>
+<div id="fatigueDisplay"></div>
+
+<hr>
+
+<h2>🏆 PRDV Readiness Score</h2>
+<div id="readinessScore"></div>
+
+<!-- Chart.js Library -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<!-- Main Script -->
 <script src="script.js"></script>
+
 </body>
 </html>
