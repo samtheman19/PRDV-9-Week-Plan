@@ -290,3 +290,26 @@ window.setManualData = function() {
 
   alert("Manual performance data set.");
 };
+
+// ==============================
+// OPERATOR MODE
+// ==============================
+
+window.toggleOperatorMode = function() {
+  document.body.classList.toggle("operator");
+};
+
+// ==============================
+// RANK PROGRESSION SYSTEM
+// ==============================
+
+function updateRank(pushups) {
+  let rank = "Recruit";
+
+  if (pushups >= 30) rank = "Trained";
+  if (pushups >= 45) rank = "Advanced";
+  if (pushups >= 60) rank = "Operator";
+  if (pushups >= 75) rank = "Elite";
+
+  document.getElementById("rankStatus").innerText = rank;
+}
