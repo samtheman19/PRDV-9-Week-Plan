@@ -1,108 +1,100 @@
-/* ---------- READINESS & RANK SYSTEM ---------- */
+/* ---------------- GLOBAL DATA ---------------- */
 
-function calculateReadiness() {
-  let pushups = parseInt(document.getElementById("pushups").value) || 0;
-  let pullups = parseInt(document.getElementById("pullups").value) || 0;
-  let fatigue = parseInt(localStorage.getItem("fatigue")) || 5;
+let runDistance = 0;
+let watchId;
+let startTime;
 
-  let score = (pushups * 2) + (pullups * 3) - (fatigue * 3);
-  if (score < 0) score = 0;
-  if (score > 100) score = 100;
+/* ---------------- GPS TRACKING ---------------- */
 
-  document.getElementById("readinessScore").innerText =
-    "Readiness Score: " + score + "%";
+function startGPS() {
+  runDistance = 0;
+  startTime = Date.now();
 
-  updateRank(score);
-  updateSelectionStatus(score);
-}
-
-function updateRank(score) {
-  let rank = "Recruit";
-
-  if (score > 80) rank = "🪖 Operator";
-  else if (score > 65) rank = "🔥 Advanced";
-  else if (score > 50) rank = "⚔ Soldier";
-  else if (score > 35) rank = "🟢 Trained";
-  else rank = "🔰 Recruit";
-
-  document.getElementById("rankDisplay").innerText = rank;
-}
-
-function updateSelectionStatus(score) {
-  const status = document.getElementById("selectionStatus");
-
-  if (score > 75) {
-    status.innerText = "SELECTION READY";
-    status.className = "ready";
-  } else if (score > 50) {
-    status.innerText = "BUILDING CAPACITY";
-    status.className = "warning";
-  } else {
-    status.innerText = "NOT READY";
-    status.className = "fail";
+  if (navigator.geolocation) {
+    watchId = navigator.geolocation.watchPosition(updatePosition);
   }
 }
 
-/* ---------- FATIGUE SYSTEM ---------- */
-
-function saveFatigue() {
-  let value = document.getElementById("fatigue").value;
-  localStorage.setItem("fatigue", value);
-
-  const display = document.getElementById("fatigueDisplay");
-  display.innerText = "Fatigue: " + value + "/10";
-
-  if (value >= 8) display.className = "fail";
-  else if (value >= 5) display.className = "warning";
-  else display.className = "ready";
-
-  calculateReadiness();
+function stopGPS() {
+  navigator.geolocation.clearWatch(watchId);
 }
 
-/* ---------- SAVE STANDARDS ---------- */
+function updatePosition(position) {
+  if (!window.lastPosition) {
+    window.lastPosition = position;
+    return;
+  }
 
-function saveStandards() {
-  localStorage.setItem("pushups", document.getElementById("pushups").value);
-  localStorage.setItem("pullups", document.getElementById("pullups").value);
+  const R = 6371;
+  let dLat = (position.coords.latitude - window.lastPosition.coords.latitude) * Math.PI/180;
+  let dLon = (position.coords.longitude - window.lastPosition.coords.longitude) * Math.PI/180;
 
-  calculateReadiness();
+  let a = Math.sin(dLat/2)*Math.sin(dLat/2) +
+    Math.cos(window.lastPosition.coords.latitude*Math.PI/180) *
+    Math.cos(position.coords.latitude*Math.PI/180) *
+    Math.sin(dLon/2)*Math.sin(dLon/2);
+
+  let c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  let distance = R * c;
+
+  runDistance += distance;
+  window.lastPosition = position;
+
+  let elapsed = (Date.now() - startTime)/1000/60;
+  let pace = elapsed > 0 ? (elapsed/runDistance).toFixed(2) : 0;
+
+  document.getElementById("gpsDisplay").innerText =
+    "Distance: " + runDistance.toFixed(2) + " km | Pace: " + pace + " min/km";
 }
 
-/* ---------- 2KM RACE MODE ---------- */
+/* ---------------- PRDV SIMULATION ---------------- */
 
-let raceTimer;
+function simulatePRDV() {
+  let pushups = parseInt(localStorage.getItem("pushups")) || 0;
+  let pullups = parseInt(localStorage.getItem("pullups")) || 0;
+  let fatigue = parseInt(localStorage.getItem("fatigue")) || 5;
 
-function start2kMode() {
-  let timeLeft = 480; // 8 minutes baseline
+  let score = pushups + (pullups * 2) - fatigue;
 
-  document.getElementById("raceModeDisplay").innerText = "GO!";
+  let result;
 
-  raceTimer = setInterval(() => {
-    timeLeft--;
+  if (score > 70) result = "🟢 PASS – Strong Candidate";
+  else if (score > 50) result = "🟡 BORDERLINE – Improve";
+  else result = "🔴 FAIL – Below Standard";
 
-    let mins = Math.floor(timeLeft / 60);
-    let secs = timeLeft % 60;
+  document.getElementById("simulationResult").innerText = result;
 
-    document.getElementById("raceModeDisplay").innerText =
-      mins + ":" + (secs < 10 ? "0" + secs : secs);
-
-    if (timeLeft === 0) {
-      clearInterval(raceTimer);
-      document.getElementById("raceModeDisplay").innerText = "FINISH";
-    }
-
-  }, 1000);
+  updateDashboard(score);
 }
 
-/* ---------- LOAD SAVED DATA ---------- */
+/* ---------------- DASHBOARD ---------------- */
+
+function updateDashboard(score) {
+  const dash = document.getElementById("dashboard");
+
+  dash.innerHTML = `
+    Push-ups: ${localStorage.getItem("pushups") || 0}<br>
+    Pull-ups: ${localStorage.getItem("pullups") || 0}<br>
+    Fatigue: ${localStorage.getItem("fatigue") || 5}<br>
+    Simulation Score: ${score}
+  `;
+}
+
+/* ---------------- ADAPTIVE TRAINING ---------------- */
+
+function adaptiveAdvice() {
+  let pushups = parseInt(localStorage.getItem("pushups")) || 0;
+  let pullups = parseInt(localStorage.getItem("pullups")) || 0;
+
+  if (pushups < 35)
+    return "Increase push-up volume 3x per week.";
+  if (pullups < 10)
+    return "Add weighted pull-ups twice weekly.";
+  return "Maintain intensity. Focus on tab endurance.";
+}
+
+/* ---------------- AUTO LOAD ---------------- */
 
 window.onload = function() {
-  document.getElementById("pushups").value =
-    localStorage.getItem("pushups") || "";
-  document.getElementById("pullups").value =
-    localStorage.getItem("pullups") || "";
-  document.getElementById("fatigue").value =
-    localStorage.getItem("fatigue") || 5;
-
-  saveFatigue();
+  updateDashboard(0);
 };
