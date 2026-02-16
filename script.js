@@ -14,8 +14,7 @@ import {
   addDoc,
   getDocs,
   query,
-  orderBy,
-  limit
+  orderBy
 } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -43,7 +42,28 @@ window.login = async () =>
 window.logout = () => signOut(auth);
 
 /* ===============================
-   RECOVERY MODEL
+   XP + RANK SYSTEM
+================================ */
+
+function calculateXP(push,pull,twoKm){
+  let xp = 0;
+  xp += push * 2;
+  xp += pull * 4;
+  xp += Math.max(0,500-twoKm);
+  return xp;
+}
+
+function getRank(xp){
+  if(xp<200) return "Recruit";
+  if(xp<400) return "Trained";
+  if(xp<600) return "Advanced";
+  if(xp<800) return "Operator";
+  if(xp<1000) return "Elite";
+  return "Tier 1";
+}
+
+/* ===============================
+   RECOVERY ENGINE
 ================================ */
 
 function recoveryScore(push,pull,fatigue,sleep){
@@ -58,159 +78,111 @@ function recoveryState(score){
 }
 
 /* ===============================
-   PERFORMANCE AI
+   MISSION INTENSITY ENGINE
 ================================ */
 
-function predict2KMTrend(twoKmHistory){
-  if(twoKmHistory.length<3) return BASE_2KM;
-  const recent = twoKmHistory.slice(-3);
-  const avg = recent.reduce((a,b)=>a+b,0)/recent.length;
-  return Math.floor(avg-5); // predicts small improvement
-}
+function missionGenerator(twoKm,state){
 
-function detectPlateau(twoKmHistory){
-  if(twoKmHistory.length<4) return false;
-  const last4 = twoKmHistory.slice(-4);
-  return Math.max(...last4)-Math.min(...last4)<5;
+  let pace = twoKm/5;
+
+  if(state==="GREEN") return `8 x 400m @ ${(pace-2).toFixed(1)}s`;
+  if(state==="AMBER") return `6 x 400m @ ${pace.toFixed(1)}s`;
+  return "Recovery Run + Mobility 30min";
 }
 
 /* ===============================
-   COMMANDER WORKOUT ENGINE
+   SELECTION PROBABILITY v2
 ================================ */
 
-async function generateWorkout(){
+function selectionProbability(push,pull,twoKm){
 
-  const user = auth.currentUser;
-  if(!user) return;
+  let prob = 40;
 
-  const q = query(
-    collection(db,"users",user.uid,"sessions"),
-    orderBy("timestamp","asc")
-  );
+  if(push>50) prob+=15;
+  if(pull>12) prob+=15;
+  if(twoKm<450) prob+=20;
+  if(twoKm<430) prob+=10;
 
-  const snap = await getDocs(q);
-
-  let twoKmHistory=[];
-  let fatigueHistory=[];
-  let sleepHistory=[];
-
-  snap.forEach(doc=>{
-    const d=doc.data();
-    twoKmHistory.push(d.twoKm||BASE_2KM);
-    fatigueHistory.push(d.fatigue||5);
-    sleepHistory.push(d.sleep||7);
-  });
-
-  const latest2km = twoKmHistory.at(-1)||BASE_2KM;
-  const predicted = predict2KMTrend(twoKmHistory);
-  const plateau = detectPlateau(twoKmHistory);
-
-  const avgSleep = sleepHistory.reduce((a,b)=>a+b,0)/sleepHistory.length||7;
-  const avgFatigue = fatigueHistory.reduce((a,b)=>a+b,0)/fatigueHistory.length||5;
-
-  const readiness = recoveryScore(
-    parseInt(localStorage.getItem("pushups"))||0,
-    parseInt(localStorage.getItem("pullups"))||0,
-    avgFatigue,
-    avgSleep
-  );
-
-  const state = recoveryState(readiness);
-
-  let workout = "";
-
-  if(state==="GREEN"){
-    workout = `8 x 400m @ ${(latest2km/5-2).toFixed(1)}s`;
-  }
-  else if(state==="AMBER"){
-    workout = `6 x 400m @ ${(latest2km/5).toFixed(1)}s`;
-  }
-  else{
-    workout = "Recovery Run 3km + Mobility";
-  }
-
-  if(plateau){
-    workout = "Shock Week: 10 x 200m Fast";
-  }
-
-  displayCommanderCard(workout,state,predicted);
+  return Math.min(prob,95);
 }
 
-function displayCommanderCard(workout,state,predicted){
+/* ===============================
+   DASHBOARD DISPLAY
+================================ */
+
+function renderDashboard(data){
 
   const container = document.getElementById("todayWorkout");
   if(!container) return;
 
-  container.innerHTML=`
+  container.innerHTML = `
     <div class="card">
-      <h2>🧠 AI Commander Mission</h2>
-      <strong>${workout}</strong>
-      <p style="margin-top:10px">Recovery State: ${state}</p>
-      <p>Predicted 2KM in 3 weeks: ${predicted}s</p>
+      <h2>⚔ Elite Battlefield Dashboard</h2>
+      <p><strong>Rank:</strong> ${data.rank}</p>
+      <p><strong>XP:</strong> ${data.xp}</p>
+      <p><strong>Recovery:</strong> ${data.state}</p>
+      <p><strong>Mission:</strong> ${data.workout}</p>
+      <p><strong>Selection Probability:</strong> ${data.selection}%</p>
+      <div style="height:10px;background:#1f2937;border-radius:6px;margin-top:10px;">
+        <div style="
+          height:10px;
+          width:${data.selection}%;
+          background:#10b981;
+          border-radius:6px;">
+        </div>
+      </div>
     </div>
   `;
 }
 
 /* ===============================
-   SAVE SESSION
+   SAVE PERFORMANCE
 ================================ */
 
 window.savePerformance = async function(){
 
-  const push=parseInt(manualPushups.value)||0;
-  const pull=parseInt(manualPullups.value)||0;
-  const fatigue=parseInt(manualFatigue.value)||5;
-  const sleep=parseFloat(sleepHours.value)||7;
-  const twoKm=parseInt(twoKmTime.value)||BASE_2KM;
+  const push = parseInt(manualPushups.value)||0;
+  const pull = parseInt(manualPullups.value)||0;
+  const fatigue = parseInt(manualFatigue.value)||5;
+  const sleep = parseFloat(sleepHours.value)||7;
+  const twoKm = parseInt(twoKmTime.value)||BASE_2KM;
 
   localStorage.setItem("pushups",push);
   localStorage.setItem("pullups",pull);
+  localStorage.setItem("twoKm",twoKm);
 
-  const user=auth.currentUser;
+  const xp = calculateXP(push,pull,twoKm);
+  const rank = getRank(xp);
+  const recScore = recoveryScore(push,pull,fatigue,sleep);
+  const state = recoveryState(recScore);
+  const workout = missionGenerator(twoKm,state);
+  const selection = selectionProbability(push,pull,twoKm);
+
+  const user = auth.currentUser;
   if(user){
     await addDoc(collection(db,"users",user.uid,"sessions"),{
-      push,pull,fatigue,sleep,twoKm,timestamp:Date.now()
+      push,pull,fatigue,sleep,twoKm,xp,rank,timestamp:Date.now()
     });
   }
 
-  generateWorkout();
-
-  alert("Session Logged");
+  renderDashboard({xp,rank,state,workout,selection});
 };
-
-/* ===============================
-   SELECTION PROBABILITY
-================================ */
-
-window.runSelectionSimulation=function(){
-
-  const push=parseInt(localStorage.getItem("pushups"))||0;
-  const pull=parseInt(localStorage.getItem("pullups"))||0;
-  const twoKm=parseInt(localStorage.getItem("twoKm"))||BASE_2KM;
-
-  let probability=50;
-
-  if(push>50) probability+=15;
-  if(pull>12) probability+=15;
-  if(twoKm<450) probability+=20;
-
-  if(probability>95) probability=95;
-
-  alert("Selection Success Probability: "+probability+"%");
-};
-
-/* ===============================
-   PWA
-================================ */
-
-if('serviceWorker' in navigator){
-  navigator.serviceWorker.register('service-worker.js');
-}
 
 /* ===============================
    INIT
 ================================ */
 
-window.onload=function(){
-  generateWorkout();
+window.onload = function(){
+
+  const push = parseInt(localStorage.getItem("pushups"))||0;
+  const pull = parseInt(localStorage.getItem("pullups"))||0;
+  const twoKm = parseInt(localStorage.getItem("twoKm"))||BASE_2KM;
+
+  const xp = calculateXP(push,pull,twoKm);
+  const rank = getRank(xp);
+  const state = "GREEN";
+  const workout = missionGenerator(twoKm,state);
+  const selection = selectionProbability(push,pull,twoKm);
+
+  renderDashboard({xp,rank,state,workout,selection});
 };
