@@ -324,3 +324,46 @@ button {
   padding: 12px;
   border-top: 1px solid rgba(255,255,255,0.05);
 }
+
+/* ===============================
+   CENTER ALIGN
+================================ */
+
+.center {
+  text-align: center;
+}
+
+/* ===============================
+   READINESS RING
+================================ */
+
+.ring-container {
+  position: relative;
+  display: inline-block;
+  margin: 20px 0;
+}
+
+.progress-ring__circle {
+  stroke-dasharray: 377;
+  stroke-dashoffset: 377;
+  transform: rotate(-90deg);
+  transform-origin: 50% 50%;
+  transition: stroke-dashoffset 0.8s ease;
+}
+
+.ring-score {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 26px;
+  font-weight: 700;
+}
+
+.operator {
+  background: radial-gradient(circle at top, #0b0f17 0%, #000 80%);
+}
+
+.operator .card {
+  box-shadow: 0 0 40px rgba(37, 99, 235, 0.15);
+}
