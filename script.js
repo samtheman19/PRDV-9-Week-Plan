@@ -1,23 +1,33 @@
-/* ===============================
+/* ==================================================
    FIREBASE IMPORTS
-================================ */
+================================================== */
 
 import { initializeApp } from 
 "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
 
-import { getAuth, createUserWithEmailAndPassword,
-signInWithEmailAndPassword, signOut,
-onAuthStateChanged }
-from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
+import {
+  getAuth,
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  signOut,
+  onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
 
-import { getFirestore, doc, setDoc,
-collection, getDocs, query,
-orderBy, limit, addDoc }
-from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
+import {
+  getFirestore,
+  doc,
+  setDoc,
+  collection,
+  getDocs,
+  query,
+  orderBy,
+  limit,
+  addDoc
+} from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
 
-/* ===============================
+/* ==================================================
    FIREBASE CONFIG
-================================ */
+================================================== */
 
 const firebaseConfig = {
   apiKey: "YOUR_KEY",
@@ -32,9 +42,9 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-/* ===============================
+/* ==================================================
    AUTH
-================================ */
+================================================== */
 
 window.register = async () => {
   try {
@@ -54,26 +64,32 @@ onAuthStateChanged(auth, () => {
   displayWorkout();
 });
 
-/* ===============================
-   PROGRAM ENGINE
-================================ */
+/* ==================================================
+   BASE SETTINGS
+================================================== */
 
 const BASE_2KM = 470; // 7:50 baseline
 
+/* ==================================================
+   WEEK ENGINE
+================================================== */
+
 function getCurrentWeek() {
   let start = localStorage.getItem("programStart");
+
   if (!start) {
     start = Date.now();
     localStorage.setItem("programStart", start);
   }
+
   const diff = Date.now() - start;
-  const week = Math.floor(diff / (7*24*60*60*1000)) + 1;
+  const week = Math.floor(diff / (7 * 24 * 60 * 60 * 1000)) + 1;
   return week > 10 ? 10 : week;
 }
 
-/* ===============================
+/* ==================================================
    RECOVERY INTELLIGENCE
-================================ */
+================================================== */
 
 function calculateRecovery(pushups, pullups, fatigue, sleep) {
 
@@ -81,13 +97,12 @@ function calculateRecovery(pushups, pullups, fatigue, sleep) {
                      sleep >= 7 ? 10 :
                      sleep >= 6 ? 5 : -15;
 
-  const readiness =
+  return (
     (pushups * 2) +
     (pullups * 3) -
     (fatigue * 3) +
-    sleepScore;
-
-  return readiness;
+    sleepScore
+  );
 }
 
 function getRecoveryState(score) {
@@ -96,28 +111,25 @@ function getRecoveryState(score) {
   return "RED";
 }
 
-function updateRecoveryInsight(score) {
-  const state = getRecoveryState(score);
-  const insight = document.getElementById("recoveryInsight");
+function detectOvertraining(fatigue, sleep) {
 
-  if (!insight) return;
+  if (fatigue >= 8 && sleep < 6)
+    return "⚠ High overtraining risk";
 
-  if (state === "GREEN")
-    insight.innerText = "High readiness. Increase intensity.";
-  else if (state === "AMBER")
-    insight.innerText = "Moderate readiness. Maintain load.";
-  else
-    insight.innerText = "Low readiness. Reduce volume 30%.";
+  if (fatigue >= 7)
+    return "⚠ Monitor fatigue";
+
+  return "Recovery stable";
 }
 
-/* ===============================
-   AUTO INTENSITY SCALING
-================================ */
+/* ==================================================
+   WORKOUT SCALING
+================================================== */
 
 function getScaledWorkout(baseWorkout, recoveryState) {
 
   if (recoveryState === "GREEN")
-    return baseWorkout + " + 1 extra interval";
+    return baseWorkout + " + 1 bonus interval";
 
   if (recoveryState === "RED")
     return "Reduced Volume: " + baseWorkout;
@@ -125,9 +137,52 @@ function getScaledWorkout(baseWorkout, recoveryState) {
   return baseWorkout;
 }
 
-/* ===============================
-   TODAY WORKOUT DISPLAY
-================================ */
+/* ==================================================
+   VO2 MAX ESTIMATOR
+================================================== */
+
+function estimateVO2max(twoKmSeconds) {
+  const velocity = 2000 / twoKmSeconds;
+  const vo2 = (velocity * 3.5 * 60) / 1000 * 100;
+  return vo2.toFixed(1);
+}
+
+/* ==================================================
+   2KM PREDICTION
+================================================== */
+
+function predict2KMImprovement(pushups, pullups, sleepAvg) {
+
+  let improvement = 0;
+
+  if (pushups > 45) improvement += 5;
+  if (pullups > 12) improvement += 5;
+  if (sleepAvg >= 7.5) improvement += 5;
+
+  return BASE_2KM - improvement;
+}
+
+/* ==================================================
+   PRDV SCORE MODEL
+================================================== */
+
+function calculatePRDVScore(pushups, pullups, twoKmSeconds) {
+
+  let score = 0;
+
+  score += pushups * 1.5;
+  score += pullups * 3;
+
+  if (twoKmSeconds <= 440) score += 30;
+  else if (twoKmSeconds <= 460) score += 20;
+  else if (twoKmSeconds <= 480) score += 10;
+
+  return Math.floor(score);
+}
+
+/* ==================================================
+   DISPLAY WORKOUT
+================================================== */
 
 function displayWorkout() {
 
@@ -142,12 +197,10 @@ function displayWorkout() {
   const recoveryState = getRecoveryState(readiness);
 
   const pace = (BASE_2KM / 5).toFixed(1);
+  const baseWorkout = `5–8 x 400m @ ${pace}s (Week ${week})`;
 
-  const baseWorkout =
-    `5–8 x 400m @ ${pace}s (Week ${week})`;
-
-  const scaledWorkout =
-    getScaledWorkout(baseWorkout, recoveryState);
+  const scaledWorkout = getScaledWorkout(baseWorkout, recoveryState);
+  const warning = detectOvertraining(fatigue, sleep);
 
   const container = document.getElementById("todayWorkout");
   if (!container) return;
@@ -159,73 +212,16 @@ function displayWorkout() {
       <p style="margin-top:10px;opacity:0.6">
         Recovery State: ${recoveryState}
       </p>
-      <button onclick="resetProgram()">Reset Program</button>
+      <p style="color:#ef4444;margin-top:8px">
+        ${warning}
+      </p>
     </div>
   `;
-
-  updateRecoveryInsight(readiness);
 }
 
-/* ===============================
-   WEEKLY SUMMARY
-================================ */
-
-window.generateWeeklySummary = async function() {
-
-  const user = auth.currentUser;
-  if (!user) return alert("Login first.");
-
-  const q = query(
-    collection(db, "users", user.uid, "sessions"),
-    orderBy("timestamp", "desc"),
-    limit(7)
-  );
-
-  const snapshot = await getDocs(q);
-
-  let totalReadiness = 0;
-  let count = 0;
-
-  snapshot.forEach(doc => {
-    totalReadiness += doc.data().readinessScore;
-    count++;
-  });
-
-  const avg = count ? (totalReadiness / count).toFixed(1) : 0;
-
-  alert("Weekly Average Readiness: " + avg);
-};
-
-/* ===============================
-   SELECTION SIMULATION
-================================ */
-
-window.runSelectionSimulation = function() {
-
-  const pushups = parseInt(localStorage.getItem("pushups")) || 0;
-  const pullups = parseInt(localStorage.getItem("pullups")) || 0;
-
-  let result = "FAIL";
-
-  if (pushups >= 45 && pullups >= 12)
-    result = "PASS - SELECTION READY";
-
-  alert("Selection Simulation Result: " + result);
-};
-
-/* ===============================
-   CALENDAR VIEW
-================================ */
-
-window.showCalendar = function() {
-
-  const week = getCurrentWeek();
-  alert("You are in Week " + week + " of 10.");
-};
-
-/* ===============================
+/* ==================================================
    SAVE PERFORMANCE
-================================ */
+================================================== */
 
 window.savePerformance = async function() {
 
@@ -245,6 +241,10 @@ window.savePerformance = async function() {
   const readiness =
     calculateRecovery(pushups, pullups, fatigue, sleep);
 
+  const vo2 = estimateVO2max(BASE_2KM);
+  const predicted = predict2KMImprovement(pushups, pullups, sleep);
+  const prdvScore = calculatePRDVScore(pushups, pullups, BASE_2KM);
+
   await addDoc(
     collection(db, "users", user.uid, "sessions"),
     {
@@ -259,29 +259,142 @@ window.savePerformance = async function() {
 
   displayWorkout();
 
-  alert("Session saved.");
+  alert(
+    "Session Saved\n\n" +
+    "VO2max: " + vo2 + "\n" +
+    "Predicted 2KM: " + predicted + " sec\n" +
+    "PRDV Score: " + prdvScore
+  );
 };
 
-/* ===============================
-   UTILITIES
-================================ */
+/* ==================================================
+   SPLIT COACH
+================================================== */
 
-window.resetProgram = function() {
-  localStorage.removeItem("programStart");
-  displayWorkout();
+window.startSplitCoach = function() {
+
+  let splits = 5;
+  let splitTime = BASE_2KM / splits;
+  let current = 1;
+
+  const timer = setInterval(() => {
+
+    if (current > splits) {
+      clearInterval(timer);
+      splitDisplay.innerText = "2KM COMPLETE";
+      return;
+    }
+
+    splitDisplay.innerText = "400m Split " + current;
+    new Audio(
+      "https://actions.google.com/sounds/v1/alarms/beep_short.ogg"
+    ).play();
+
+    current++;
+
+  }, splitTime * 1000);
 };
+
+/* ==================================================
+   SELECTION SIMULATION
+================================================== */
+
+window.runSelectionSimulation = function() {
+
+  const pushups = parseInt(localStorage.getItem("pushups")) || 0;
+  const pullups = parseInt(localStorage.getItem("pullups")) || 0;
+
+  let result = "FAIL";
+
+  if (pushups >= 45 && pullups >= 12)
+    result = "PASS - SELECTION READY";
+
+  alert("Selection Simulation Result: " + result);
+};
+
+/* ==================================================
+   WEEKLY SUMMARY
+================================================== */
+
+window.generateWeeklySummary = async function() {
+
+  const user = auth.currentUser;
+  if (!user) return alert("Login first.");
+
+  const q = query(
+    collection(db, "users", user.uid, "sessions"),
+    orderBy("timestamp", "desc"),
+    limit(7)
+  );
+
+  const snapshot = await getDocs(q);
+
+  let total = 0;
+  let count = 0;
+
+  snapshot.forEach(doc => {
+    total += doc.data().readinessScore;
+    count++;
+  });
+
+  const avg = count ? (total / count).toFixed(1) : 0;
+
+  alert("Weekly Average Readiness: " + avg);
+};
+
+/* ==================================================
+   CALENDAR VIEW
+================================================== */
+
+window.showCalendar = function() {
+
+  const week = getCurrentWeek();
+
+  let grid = "10 Week Program\n\n";
+
+  for (let i = 1; i <= 10; i++) {
+    grid += i === week
+      ? "Week " + i + " ← CURRENT\n"
+      : "Week " + i + "\n";
+  }
+
+  alert(grid);
+};
+
+/* ==================================================
+   EXPORT
+================================================== */
 
 window.exportData = function() {
-  alert("Export feature coming soon.");
+
+  const content = `
+    PRDV Tactical Report
+
+    Pushups: ${localStorage.getItem("pushups")}
+    Pullups: ${localStorage.getItem("pullups")}
+    Fatigue: ${localStorage.getItem("fatigue")}
+    Sleep: ${localStorage.getItem("sleep")}
+  `;
+
+  const blob = new Blob([content], { type: "text/plain" });
+  const link = document.createElement("a");
+
+  link.href = URL.createObjectURL(blob);
+  link.download = "PRDV_Report.txt";
+  link.click();
 };
+
+/* ==================================================
+   OPERATOR MODE
+================================================== */
 
 window.toggleOperatorMode = function() {
   document.body.classList.toggle("operator");
 };
 
-/* ===============================
+/* ==================================================
    INIT
-================================ */
+================================================== */
 
 window.onload = function() {
   displayWorkout();
