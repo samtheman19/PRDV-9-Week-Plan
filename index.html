@@ -1,18 +1,17 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>PRDV Tactical Platform</title>
+  <title>PRDV Tactical OS</title>
   <link rel="stylesheet" href="style.css">
+  <link rel="manifest" href="manifest.json">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#000000">
 </head>
 
 <body>
 
-<!-- ================= NAVBAR ================= -->
-
 <div class="navbar">
-  <div class="nav-title">🪖 PRDV Tactical</div>
+  <div class="nav-title">🪖 PRDV Tactical OS</div>
   <div class="nav-actions">
     <button onclick="toggleOperatorMode()">Operator Mode</button>
   </div>
@@ -20,145 +19,59 @@
 
 <div class="container">
 
-<h1>Performance Platform</h1>
-
-<!-- ================= TODAY'S MISSION ================= -->
+<h1>Tactical Performance System</h1>
 
 <div id="todayWorkout"></div>
 
-<!-- ================= LOGIN ================= -->
-
 <div class="card">
   <h2>🔐 Login</h2>
-
   <input id="email" placeholder="Email">
   <input id="password" type="password" placeholder="Password">
-
   <div class="button-row">
     <button onclick="register()">Register</button>
     <button class="primary" onclick="login()">Login</button>
     <button onclick="logout()">Logout</button>
   </div>
-
-  <div id="userStatus">Not logged in</div>
 </div>
-
-<!-- ================= READINESS ================= -->
 
 <div class="card center">
-  <h2>🟢 Readiness Status</h2>
-
-  <div class="ring-container">
-    <svg class="progress-ring" width="140" height="140">
-      <circle
-        class="progress-ring__background"
-        stroke="#1f2937"
-        stroke-width="10"
-        fill="transparent"
-        r="60"
-        cx="70"
-        cy="70"
-      />
-      <circle
-        class="progress-ring__circle"
-        stroke="#10b981"
-        stroke-width="10"
-        fill="transparent"
-        r="60"
-        cx="70"
-        cy="70"
-      />
-    </svg>
-
-    <div id="scoreValue" class="ring-score">0</div>
-  </div>
-
-  <div id="readinessLabel" class="readiness green">
-    GREEN
-  </div>
-
-  <div id="recoveryInsight" style="margin-top:12px; opacity:0.7; font-size:14px;">
-    Recovery data loading...
-  </div>
+  <h2>🟢 Readiness</h2>
+  <div id="recoveryInsight"></div>
 </div>
 
-<!-- ================= SAVE PERFORMANCE ================= -->
-
 <div class="card">
-  <h2>☁️ Save Performance</h2>
-
+  <h2>📊 Save Performance</h2>
   <input id="manualPushups" placeholder="Pushups">
   <input id="manualPullups" placeholder="Pullups">
   <input id="manualFatigue" placeholder="Fatigue (1-10)">
   <input id="sleepHours" placeholder="Sleep (hours)">
-
+  <input id="twoKmTime" placeholder="2KM Time (seconds)">
   <div class="button-row">
-    <button onclick="setManualData()">Set Test Data</button>
     <button class="success" onclick="savePerformance()">Save</button>
   </div>
 </div>
 
-<!-- ================= RANK SYSTEM ================= -->
+<div class="card">
+  <h2>📈 Analytics</h2>
+  <button onclick="loadAnalytics()">Load Analytics</button>
+  <h3>VO2 Trend</h3>
+  <canvas id="vo2Trend" height="120"></canvas>
+</div>
 
 <div class="card">
-  <h2>🎖 Rank Progression</h2>
-  <div id="rankStatus">Recruit</div>
+  <h2>🎯 Selection</h2>
+  <button onclick="showSelectionDashboard()">View Selection Score</button>
+  <button onclick="runSelectionSimulation()">Run Simulation</button>
 </div>
-
-<!-- ================= SPLIT COACH ================= -->
 
 <div class="card">
-  <h2>🎧 400m Split Coach</h2>
-  <button class="primary" onclick="startSplitCoach()">Start 400m Beep Coach</button>
-  <div id="splitDisplay"></div>
-</div>
-
-<!-- ================= MOCK MODE ================= -->
-
-<div class="card">
-  <h2>🏁 3-Day PRDV Mock Mode</h2>
-
-  <div class="button-row">
-    <button onclick="startMockDay(1)">Day 1</button>
-    <button onclick="startMockDay(2)">Day 2</button>
-    <button onclick="startMockDay(3)">Day 3</button>
-  </div>
-
-  <div id="mockDisplay"></div>
-</div>
-
-<!-- ================= ANALYTICS ================= -->
-
-<div class="card">
-  <h2>📊 Performance Analytics</h2>
-  <button onclick="loadAnalytics()">Load My Analytics</button>
-
-  <h3>Push-up Trend</h3>
-  <canvas id="pushupTrend" height="120"></canvas>
-
-  <h3>Fatigue Trend</h3>
-  <canvas id="fatigueTrend" height="120"></canvas>
-
-  <h3>Sleep Trend</h3>
-  <canvas id="sleepTrend" height="120"></canvas>
-
-  <h3>Session History</h3>
-  <div id="sessionHistory"></div>
+  <h2>📅 Program</h2>
+  <button onclick="showCalendar()">Show Calendar</button>
 </div>
 
 </div>
 
-<!-- ================= BOTTOM BAR ================= -->
-
-<div class="bottom-bar">
-  <button onclick="loadLeaderboard()">🏆 Leaderboard</button>
-  <button onclick="exportData()">📤 Export</button>
-</div>
-
-<!-- Chart.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-<!-- Firebase Script -->
 <script type="module" src="script.js"></script>
 
 </body>
