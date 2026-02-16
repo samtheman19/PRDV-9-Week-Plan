@@ -1,18 +1,20 @@
 /* ===============================
-   GLOBAL DARK THEME
+   GLOBAL RESET
 ================================ */
 
 * {
   box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 }
 
 body {
-  margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 
-               "Segoe UI", Roboto, Oxygen, Ubuntu, sans-serif;
-  background: #05080f;
-  color: #e6edf3;
+  background: #000000;
+  color: #e6e6e6;
   padding: 20px;
+  max-width: 700px;
+  margin: auto;
 }
 
 /* ===============================
@@ -21,37 +23,40 @@ body {
 
 h1 {
   font-size: 26px;
-  font-weight: 700;
+  font-weight: 600;
   margin-bottom: 20px;
 }
 
 h2 {
-  font-size: 18px;
+  font-size: 20px;
   margin-bottom: 15px;
   font-weight: 600;
 }
 
-/* ===============================
-   SECTION DIVIDERS
-================================ */
+h3 {
+  font-size: 16px;
+  margin: 20px 0 10px 0;
+  font-weight: 500;
+}
 
 hr {
   border: none;
   height: 1px;
-  background: rgba(255,255,255,0.08);
-  margin: 30px 0;
+  background: #1a1a1a;
+  margin: 25px 0;
 }
 
 /* ===============================
-   CARD SYSTEM
+   CARD SYSTEM (Glass Dark)
 ================================ */
 
 .card {
-  background: #0d1420;
-  padding: 20px;
+  background: linear-gradient(145deg, #0c0f16, #111827);
   border-radius: 16px;
-  margin-bottom: 20px;
-  box-shadow: 0 0 0 1px rgba(255,255,255,0.04);
+  padding: 20px;
+  margin-bottom: 25px;
+  border: 1px solid rgba(255,255,255,0.05);
+  box-shadow: 0 8px 25px rgba(0,0,0,0.6);
 }
 
 /* ===============================
@@ -63,84 +68,104 @@ input {
   padding: 14px;
   margin-bottom: 12px;
   border-radius: 12px;
-  border: 1px solid rgba(255,255,255,0.08);
-  background: #111a28;
-  color: white;
+  border: 1px solid #1f2937;
+  background: #111827;
+  color: #ffffff;
   font-size: 14px;
+  transition: 0.2s ease;
 }
 
-input::placeholder {
-  color: rgba(255,255,255,0.4);
+input:focus {
+  outline: none;
+  border: 1px solid #2563eb;
+  background: #0f172a;
 }
 
 /* ===============================
-   BUTTON SYSTEM
+   BUTTONS
 ================================ */
 
 button {
-  padding: 12px 18px;
+  padding: 12px 16px;
   border-radius: 12px;
   border: none;
-  font-weight: 600;
+  background: #1f2937;
+  color: #e5e7eb;
+  font-size: 14px;
   cursor: pointer;
-  margin: 6px 6px 6px 0;
-  background: #1c2636;
-  color: white;
-  transition: all 0.2s ease;
+  transition: 0.2s ease;
+  margin-bottom: 10px;
 }
 
 button:hover {
-  background: #263449;
+  background: #2c3a4f;
 }
 
-/* PRIMARY BUTTON (Blue like screenshot) */
-
-.primary {
-  background: #2f6df6;
+button.primary {
+  background: #2563eb;
+  color: white;
 }
 
-.primary:hover {
-  background: #1f5be0;
+button.primary:hover {
+  background: #1d4ed8;
 }
 
-/* ===============================
-   STATUS PANELS
-================================ */
-
-.status-box {
-  background: #0f1c30;
-  padding: 16px;
-  border-radius: 14px;
-  margin-top: 10px;
+/* Button row layout */
+.button-row {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
 }
 
 /* ===============================
-   LEADERBOARD / ANALYTICS BOX
-================================ */
-
-.analytics-box {
-  background: #0c1627;
-  border-radius: 18px;
-  padding: 20px;
-  margin-top: 15px;
-}
-
-/* ===============================
-   SMALL TEXT
+   STATUS + OUTPUT
 ================================ */
 
 #userStatus {
   margin-top: 10px;
-  opacity: 0.7;
+  font-size: 14px;
+  color: #9ca3af;
+}
+
+#mockDisplay,
+#splitDisplay,
+#leaderboard,
+#riskDisplay,
+#sessionHistory {
+  margin-top: 15px;
+  padding: 15px;
+  border-radius: 12px;
+  background: #0f172a;
+  border: 1px solid rgba(255,255,255,0.04);
   font-size: 14px;
 }
 
 /* ===============================
-   RESPONSIVE
+   CANVAS (Charts)
 ================================ */
 
-@media (max-width: 600px) {
+canvas {
+  background: #0f172a;
+  padding: 10px;
+  border-radius: 12px;
+  margin-top: 10px;
+}
+
+/* ===============================
+   MOBILE POLISH
+================================ */
+
+@media (max-width: 480px) {
   body {
     padding: 15px;
+  }
+
+  h1 {
+    font-size: 22px;
+  }
+
+  button {
+    width: 100%;
   }
 }
