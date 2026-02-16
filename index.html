@@ -11,8 +11,6 @@
 
 <h1>🪖 PRDV Tactical Performance Platform</h1>
 
-<!-- ================= LOGIN ================= -->
-
 <hr>
 <h2>🔐 Login</h2>
 
@@ -26,50 +24,36 @@
 <div id="userStatus">Not logged in</div>
 
 <hr>
-
-<!-- ================= MOCK MODE ================= -->
-
 <h2>🏁 3-Day PRDV Mock Mode</h2>
+
 <button onclick="startMockDay(1)">Start Day 1</button>
 <button onclick="startMockDay(2)">Start Day 2</button>
 <button onclick="startMockDay(3)">Start Day 3</button>
+
 <div id="mockDisplay"></div>
 
 <hr>
-
-<!-- ================= SPLIT COACH ================= -->
-
 <h2>🎧 400m Split Coach</h2>
+
 <button onclick="startSplitCoach()">Start 400m Beep Coach</button>
 <div id="splitDisplay"></div>
 
 <hr>
-
-<!-- ================= RISK ================= -->
-
 <h2>🧠 Risk Analysis</h2>
 <div id="riskDisplay"></div>
 
 <hr>
-
-<!-- ================= CLOUD SAVE ================= -->
-
 <h2>☁️ Save Performance</h2>
 <button onclick="savePerformance()">Save Current Performance</button>
 
 <hr>
-
-<!-- ================= LEADERBOARD ================= -->
-
 <h2>🏆 Leaderboard (Readiness)</h2>
 <button onclick="loadLeaderboard()">Load Leaderboard</button>
 <div id="leaderboard"></div>
 
 <hr>
-
-<!-- ================= ANALYTICS ================= -->
-
 <h2>📊 Performance Analytics</h2>
+
 <button onclick="loadAnalytics()">Load My Analytics</button>
 
 <h3>Push-up Trend</h3>
@@ -81,14 +65,10 @@
 <h3>Session History</h3>
 <div id="sessionHistory"></div>
 
-<hr>
-
-<!-- ================= LIBRARIES ================= -->
-
-<!-- Chart.js for graphs -->
+<!-- Chart.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-<!-- Main Firebase Script (must be module) -->
+<!-- Firebase Script -->
 <script type="module" src="script.js"></script>
 
 </body>
