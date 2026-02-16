@@ -25,8 +25,7 @@ const firebaseConfig = {
   projectId: "prdv-platform",
   storageBucket: "prdv-platform.firebasestorage.app",
   messagingSenderId: "578412239135",
-  appId: "1:578412239135:web:7680746ea4df63246df82a",
-  measurementId: "G-T4KJ9P53GZ"
+  appId: "1:578412239135:web:7680746ea4df63246df82a"
 };
 
 const app = initializeApp(firebaseConfig);
@@ -40,27 +39,87 @@ const db = getFirestore(app);
 window.register = async function() {
   try {
     await createUserWithEmailAndPassword(auth, email.value, password.value);
-  } catch (e) {
-    alert(e.message);
-  }
+  } catch (e) { alert(e.message); }
 };
 
 window.login = async function() {
   try {
     await signInWithEmailAndPassword(auth, email.value, password.value);
-  } catch (e) {
-    alert(e.message);
-  }
+  } catch (e) { alert(e.message); }
 };
 
-window.logout = function() {
-  signOut(auth);
-};
+window.logout = function() { signOut(auth); };
 
 onAuthStateChanged(auth, (user) => {
   userStatus.innerText =
     user ? "Logged in as " + user.email : "Not logged in";
 });
+
+/* ===============================
+   READINESS RING ENGINE
+================================ */
+
+function updateReadinessUI(score) {
+
+  const circle = document.querySelector(".progress-ring__circle");
+  if (!circle) return;
+
+  const radius = circle.r.baseVal.value;
+  const circumference = 2 * Math.PI * radius;
+
+  circle.style.strokeDasharray = `${circumference}`;
+  circle.style.strokeDashoffset = circumference;
+
+  const percent = Math.min(score / 150, 1);
+  const offset = circumference - percent * circumference;
+
+  setTimeout(() => {
+    circle.style.strokeDashoffset = offset;
+  }, 100);
+
+  // Animated number count up
+  let current = 0;
+  const scoreDisplay = document.getElementById("scoreValue");
+
+  const interval = setInterval(() => {
+    if (current >= score) {
+      clearInterval(interval);
+    } else {
+      current++;
+      scoreDisplay.innerText = current;
+    }
+  }, 10);
+
+  const label = document.getElementById("readinessLabel");
+
+  if (score >= 100) {
+    label.className = "readiness green";
+    label.innerText = "GREEN • READY";
+  } else if (score >= 60) {
+    label.className = "readiness amber";
+    label.innerText = "AMBER • BUILDING";
+  } else {
+    label.className = "readiness red";
+    label.innerText = "RED • IMPROVE";
+  }
+}
+
+/* ===============================
+   RANK SYSTEM
+================================ */
+
+function updateRank(pushups) {
+
+  let rank = "Recruit";
+
+  if (pushups >= 30) rank = "Trained";
+  if (pushups >= 45) rank = "Advanced";
+  if (pushups >= 60) rank = "Operator";
+  if (pushups >= 75) rank = "Elite";
+
+  const rankEl = document.getElementById("rankStatus");
+  if (rankEl) rankEl.innerText = rank;
+}
 
 /* ===============================
    SAVE PERFORMANCE
@@ -82,7 +141,10 @@ window.savePerformance = async function() {
   const readinessScore =
     (pushups * 2) + (pullups * 3) - (fatigue * 3);
 
-  // Save session history
+  // 🔥 FINAL FORM UPDATES
+  updateReadinessUI(readinessScore);
+  updateRank(pushups);
+
   await addDoc(
     collection(db, "users", user.uid, "sessions"),
     {
@@ -95,7 +157,6 @@ window.savePerformance = async function() {
     }
   );
 
-  // Update summary
   await setDoc(doc(db, "users", user.uid), {
     email: user.email,
     latestPushups: pushups,
@@ -123,29 +184,22 @@ window.loadLeaderboard = async function() {
   const snapshot = await getDocs(q);
 
   let html = "";
-
   snapshot.forEach(doc => {
     const data = doc.data();
-    html += `
-      ${data.email || "User"} 
-      — Readiness: ${data.latestReadiness || 0}<br>
-    `;
+    html += `${data.email || "User"} — ${data.latestReadiness || 0}<br>`;
   });
 
   leaderboard.innerHTML = html;
 };
 
 /* ===============================
-   ANALYTICS DASHBOARD
+   ANALYTICS
 ================================ */
 
 window.loadAnalytics = async function() {
 
   const user = auth.currentUser;
-  if (!user) {
-    alert("Login first.");
-    return;
-  }
+  if (!user) return alert("Login first.");
 
   const q = query(
     collection(db, "users", user.uid, "sessions"),
@@ -157,47 +211,29 @@ window.loadAnalytics = async function() {
   let pushups = [];
   let fatigue = [];
   let labels = [];
-  let historyHTML = "";
   let count = 1;
 
   snapshot.forEach(doc => {
     const data = doc.data();
-
     pushups.push(data.pushups);
     fatigue.push(data.fatigue);
     labels.push("S" + count);
-
-    historyHTML += `
-      Session ${count} —
-      Pushups: ${data.pushups},
-      Pullups: ${data.pullups},
-      Fatigue: ${data.fatigue}<br>
-    `;
-
     count++;
   });
-
-  sessionHistory.innerHTML = historyHTML;
 
   new Chart(pushupTrend, {
     type: "line",
     data: {
-      labels: labels,
-      datasets: [{
-        label: "Pushups",
-        data: pushups
-      }]
+      labels,
+      datasets: [{ label: "Pushups", data: pushups }]
     }
   });
 
   new Chart(fatigueTrend, {
     type: "line",
     data: {
-      labels: labels,
-      datasets: [{
-        label: "Fatigue",
-        data: fatigue
-      }]
+      labels,
+      datasets: [{ label: "Fatigue", data: fatigue }]
     }
   });
 };
@@ -207,13 +243,12 @@ window.loadAnalytics = async function() {
 ================================ */
 
 window.startMockDay = function(day) {
-  if (day === 1)
-    mockDisplay.innerText = "Day 1: 2KM + Push/Pull Test";
-  if (day === 2)
-    mockDisplay.innerText = "Day 2: 15KM Loaded Tab";
-  if (day === 3)
-    mockDisplay.innerText = "Day 3: Hills + Circuit";
-
+  const messages = {
+    1: "Day 1: 2KM + Push/Pull Test",
+    2: "Day 2: 15KM Loaded Tab",
+    3: "Day 3: Hills + Circuit"
+  };
+  mockDisplay.innerText = messages[day];
   localStorage.setItem("mockDay", day);
 };
 
@@ -246,97 +281,29 @@ window.startSplitCoach = function() {
 };
 
 function beep() {
-  const audio = new Audio(
+  new Audio(
     "https://actions.google.com/sounds/v1/alarms/beep_short.ogg"
-  );
-  audio.play();
+  ).play();
 }
 
 /* ===============================
-   RISK ANALYSIS
+   MANUAL DATA
 ================================ */
 
-function riskAnalysis() {
-
-  let fatigue = parseInt(localStorage.getItem("fatigue")) || 5;
-  let pushups = parseInt(localStorage.getItem("pushups")) || 0;
-
-  let injuryRisk =
-    fatigue > 7 ? "HIGH" :
-    fatigue > 5 ? "MODERATE" : "LOW";
-
-  let overtraining =
-    (fatigue > 8 && pushups < 30) ? "YES" : "NO";
-
-  riskDisplay.innerHTML = `
-    Injury Risk: ${injuryRisk}<br>
-    Overtraining Risk: ${overtraining}
-  `;
-}
-
-window.onload = function() {
-  riskAnalysis();
-};
-
 window.setManualData = function() {
-
-  const push = document.getElementById("manualPushups").value;
-  const pull = document.getElementById("manualPullups").value;
-  const fatigue = document.getElementById("manualFatigue").value;
-
-  localStorage.setItem("pushups", push);
-  localStorage.setItem("pullups", pull);
-  localStorage.setItem("fatigue", fatigue);
-
+  localStorage.setItem("pushups",
+    document.getElementById("manualPushups").value);
+  localStorage.setItem("pullups",
+    document.getElementById("manualPullups").value);
+  localStorage.setItem("fatigue",
+    document.getElementById("manualFatigue").value);
   alert("Manual performance data set.");
 };
 
-// ==============================
-// OPERATOR MODE
-// ==============================
+/* ===============================
+   OPERATOR MODE
+================================ */
 
 window.toggleOperatorMode = function() {
   document.body.classList.toggle("operator");
 };
-
-// ==============================
-// RANK PROGRESSION SYSTEM
-// ==============================
-
-function updateRank(pushups) {
-  let rank = "Recruit";
-
-  if (pushups >= 30) rank = "Trained";
-  if (pushups >= 45) rank = "Advanced";
-  if (pushups >= 60) rank = "Operator";
-  if (pushups >= 75) rank = "Elite";
-
-  document.getElementById("rankStatus").innerText = rank;
-}
-
-function updateReadinessUI(score) {
-
-  const circle = document.querySelector(".progress-ring__circle");
-  const radius = circle.r.baseVal.value;
-  const circumference = 2 * Math.PI * radius;
-
-  const percent = Math.min(score / 150, 1); // cap at 150
-  const offset = circumference - percent * circumference;
-
-  circle.style.strokeDashoffset = offset;
-
-  document.getElementById("scoreValue").innerText = score;
-
-  const label = document.getElementById("readinessLabel");
-
-  if (score >= 100) {
-    label.className = "readiness green";
-    label.innerText = "GREEN • READY";
-  } else if (score >= 60) {
-    label.className = "readiness amber";
-    label.innerText = "AMBER • BUILDING";
-  } else {
-    label.className = "readiness red";
-    label.innerText = "RED • IMPROVE";
-  }
-}
