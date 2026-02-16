@@ -1,48 +1,146 @@
+/* ===============================
+   GLOBAL RESET
+================================ */
+
+* {
+  box-sizing: border-box;
+  font-family: -apple-system, BlinkMacSystemFont, 
+               "Segoe UI", Roboto, sans-serif;
+}
+
 body {
-  background: #0f1a0f;
-  color: #d4ff00;
-  font-family: Arial;
-  text-align: center;
+  margin: 0;
+  background: #0b0f14;
+  color: #e6edf3;
+  padding: 20px;
 }
 
-.day-card {
-  background: #1c2b1c;
-  margin: 10px auto;
-  padding: 10px;
-  width: 90%;
-  max-width: 500px;
-  border-radius: 6px;
+/* ===============================
+   HEADINGS
+================================ */
+
+h1 {
+  font-size: 28px;
+  font-weight: 700;
+  margin-bottom: 20px;
 }
 
-button {
-  background: #2f4f2f;
-  color: #d4ff00;
+h2 {
+  margin-top: 30px;
+  font-size: 20px;
+  font-weight: 600;
+}
+
+h3 {
+  font-size: 16px;
+  margin-top: 20px;
+  opacity: 0.8;
+}
+
+/* ===============================
+   CARD SYSTEM
+================================ */
+
+hr {
   border: none;
-  padding: 8px 12px;
-  margin: 5px;
+  height: 1px;
+  background: #1f2933;
+  margin: 25px 0;
 }
+
+section, 
+.card,
+div[id$="Display"],
+#leaderboard,
+#sessionHistory {
+  background: #111827;
+  padding: 18px;
+  border-radius: 14px;
+  margin-top: 10px;
+}
+
+/* ===============================
+   INPUTS
+================================ */
 
 input {
-  margin: 5px;
-  padding: 5px;
+  background: #1f2933;
+  border: 1px solid #2d3748;
+  color: white;
+  padding: 10px;
+  border-radius: 10px;
+  margin: 6px 4px 6px 0;
+  width: 45%;
 }
 
-#readinessScore {
-  font-size: 1.5em;
-  margin: 10px;
+input:focus {
+  outline: none;
+  border-color: #3b82f6;
 }
 
-#rankDisplay {
-  font-size: 1.3em;
-  margin: 10px;
+/* ===============================
+   BUTTONS
+================================ */
+
+button {
+  background: #1f2933;
+  color: white;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 10px;
+  margin: 6px 4px;
+  cursor: pointer;
+  transition: 0.2s ease;
 }
 
-#selectionStatus {
-  font-size: 1.4em;
-  font-weight: bold;
-  margin: 10px;
+button:hover {
+  background: #2563eb;
 }
 
-.ready { color: #00ff00; }
-.warning { color: orange; }
-.fail { color: red; }
+button:active {
+  transform: scale(0.96);
+}
+
+/* Primary Action */
+button.primary {
+  background: #2563eb;
+}
+
+/* ===============================
+   STATUS TEXT
+================================ */
+
+#userStatus {
+  margin-top: 10px;
+  opacity: 0.8;
+}
+
+/* ===============================
+   CHART CANVAS
+================================ */
+
+canvas {
+  background: #0f172a;
+  border-radius: 12px;
+  padding: 10px;
+  margin-top: 10px;
+}
+
+/* ===============================
+   LEADERBOARD STYLE
+================================ */
+
+#leaderboard {
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+/* ===============================
+   RESPONSIVE
+================================ */
+
+@media (max-width: 600px) {
+  input {
+    width: 100%;
+  }
+}
