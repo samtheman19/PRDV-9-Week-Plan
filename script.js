@@ -1,17 +1,131 @@
 /* ===============================
+   FIREBASE IMPORTS (v12.9.0)
+================================ */
+
+import { initializeApp } from 
+"https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
+
+import { getAuth, createUserWithEmailAndPassword,
+signInWithEmailAndPassword, signOut,
+onAuthStateChanged }
+from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
+
+import { getFirestore, doc, setDoc, getDoc,
+collection, getDocs, query, orderBy, limit }
+from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
+
+/* ===============================
+   FIREBASE CONFIG
+================================ */
+
+const firebaseConfig = {
+  apiKey: "AIzaSyD7sHTLny_kAtTN_xXmkovFC-GSTtFMeNo",
+  authDomain: "prdv-platform.firebaseapp.com",
+  projectId: "prdv-platform",
+  storageBucket: "prdv-platform.firebasestorage.app",
+  messagingSenderId: "578412239135",
+  appId: "1:578412239135:web:7680746ea4df63246df82a",
+  measurementId: "G-T4KJ9P53GZ"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+/* ===============================
+   AUTH SYSTEM
+================================ */
+
+window.register = async function() {
+  try {
+    await createUserWithEmailAndPassword(
+      auth,
+      email.value,
+      password.value
+    );
+  } catch (e) {
+    alert(e.message);
+  }
+};
+
+window.login = async function() {
+  try {
+    await signInWithEmailAndPassword(
+      auth,
+      email.value,
+      password.value
+    );
+  } catch (e) {
+    alert(e.message);
+  }
+};
+
+window.logout = function() {
+  signOut(auth);
+};
+
+onAuthStateChanged(auth, (user) => {
+  userStatus.innerText =
+    user ? "Logged in as " + user.email : "Not logged in";
+});
+
+/* ===============================
    GLOBAL STATE
 ================================ */
 
-let runDistance = 0;
-let watchId;
-let startTime;
 let splitTimer;
 
 /* ===============================
-   3-DAY MOCK PRDV MODE
+   SAVE PERFORMANCE TO CLOUD
 ================================ */
 
-function startMockDay(day) {
+window.savePerformance = async function() {
+  const user = auth.currentUser;
+  if (!user) {
+    alert("Login first.");
+    return;
+  }
+
+  const pushups = localStorage.getItem("pushups") || 0;
+  const pullups = localStorage.getItem("pullups") || 0;
+  const fatigue = localStorage.getItem("fatigue") || 5;
+
+  await setDoc(doc(db, "users", user.uid), {
+    pushups,
+    pullups,
+    fatigue,
+    updated: Date.now()
+  });
+
+  alert("Performance saved to cloud.");
+};
+
+/* ===============================
+   LEADERBOARD
+================================ */
+
+window.loadLeaderboard = async function() {
+  const q = query(
+    collection(db, "users"),
+    orderBy("pushups", "desc"),
+    limit(10)
+  );
+
+  const snapshot = await getDocs(q);
+
+  let html = "";
+  snapshot.forEach(doc => {
+    html += doc.data().pushups + " push-ups<br>";
+  });
+
+  leaderboard.innerHTML = html;
+};
+
+/* ===============================
+   3-DAY MOCK MODE
+================================ */
+
+window.startMockDay = function(day) {
   const display = document.getElementById("mockDisplay");
 
   if (day === 1)
@@ -22,52 +136,54 @@ function startMockDay(day) {
     display.innerText = "Day 3: Hills + Circuit Under Fatigue";
 
   localStorage.setItem("mockDay", day);
-}
+};
 
 /* ===============================
-   SPLIT COACH (400m Beep)
+   SPLIT COACH (400m)
 ================================ */
 
-function startSplitCoach() {
-  let splits = 5; // 2km = 5 x 400m
-  let targetTime = 480; // 8 min
+window.startSplitCoach = function() {
+  let splits = 5;
+  let targetTime = 480;
   let splitTime = targetTime / splits;
-
   let current = 1;
 
   splitTimer = setInterval(() => {
     if (current > splits) {
       clearInterval(splitTimer);
-      document.getElementById("splitDisplay").innerText = "2KM COMPLETE";
+      splitDisplay.innerText = "2KM COMPLETE";
       return;
     }
 
-    document.getElementById("splitDisplay").innerText =
-      "400m Split " + current;
-
+    splitDisplay.innerText = "400m Split " + current;
     beep();
     current++;
 
   }, splitTime * 1000);
-}
+};
 
 function beep() {
-  const audio = new Audio("https://actions.google.com/sounds/v1/alarms/beep_short.ogg");
+  const audio = new Audio(
+    "https://actions.google.com/sounds/v1/alarms/beep_short.ogg"
+  );
   audio.play();
 }
 
 /* ===============================
-   FATIGUE + INJURY RISK MODEL
+   FATIGUE + INJURY RISK
 ================================ */
 
 function riskAnalysis() {
   let fatigue = parseInt(localStorage.getItem("fatigue")) || 5;
   let pushups = parseInt(localStorage.getItem("pushups")) || 0;
 
-  let injuryRisk = fatigue > 7 ? "HIGH" : fatigue > 5 ? "MODERATE" : "LOW";
-  let overtraining = (fatigue > 8 && pushups < 30) ? "YES" : "NO";
+  let injuryRisk = fatigue > 7 ? "HIGH" :
+                   fatigue > 5 ? "MODERATE" : "LOW";
 
-  document.getElementById("riskDisplay").innerHTML = `
+  let overtraining =
+    (fatigue > 8 && pushups < 30) ? "YES" : "NO";
+
+  riskDisplay.innerHTML = `
     Injury Risk: ${injuryRisk}<br>
     Overtraining Risk: ${overtraining}
   `;
@@ -85,17 +201,17 @@ function adaptiveEngine() {
   if (fatigue > 8)
     return "Reduce volume 20% this week.";
   if (pushups < 35)
-    return "Add push-up density sessions.";
+    return "Increase push-up density sessions.";
   if (pullups < 10)
     return "Add weighted pull-ups twice weekly.";
   return "Maintain intensity. Focus on tab speed.";
 }
 
 /* ===============================
-   CLOUD READY STRUCTURE
+   EXPORT DATA
 ================================ */
 
-function exportData() {
+window.exportData = function() {
   const data = {
     pushups: localStorage.getItem("pushups"),
     pullups: localStorage.getItem("pullups"),
@@ -104,7 +220,7 @@ function exportData() {
   };
 
   console.log("Export Ready:", JSON.stringify(data));
-}
+};
 
 /* ===============================
    AUTO LOAD
