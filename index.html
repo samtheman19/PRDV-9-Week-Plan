@@ -1,108 +1,33 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>PRDV Tactical App</title>
+  <title>PRDV Tactical Platform</title>
   <link rel="stylesheet" href="style.css">
-  <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#0f1a0f">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#0f1a0f">
 </head>
 
 <body>
 
-<h1>🪖 PRDV Tactical Performance</h1>
+<h1>🪖 PRDV Tactical Performance Platform</h1>
 
-<div class="controls">
-  <label>Week:</label>
-  <select id="weekSelect" onchange="loadWeek()">
-    <option value="1">Week 1</option>
-    <option value="2">Week 2</option>
-    <option value="3">Week 3</option>
-    <option value="4">Week 4</option>
-    <option value="5">Week 5</option>
-    <option value="6">Week 6</option>
-    <option value="7">Week 7</option>
-    <option value="8">Week 8</option>
-    <option value="9">Week 9 (Taper)</option>
-  </select>
-</div>
+<!-- ================= LOGIN ================= -->
 
-<div id="progress"></div>
-<div id="days"></div>
+<hr>
+<h2>🔐 Login</h2>
+
+<input id="email" placeholder="Email">
+<input id="password" type="password" placeholder="Password">
+
+<button onclick="register()">Register</button>
+<button onclick="login()">Login</button>
+<button onclick="logout()">Logout</button>
+
+<div id="userStatus">Not logged in</div>
 
 <hr>
 
-<h2>⏱ Interval Timer</h2>
-<input type="number" id="workTime" placeholder="Work (sec)">
-<input type="number" id="restTime" placeholder="Rest (sec)">
-<input type="number" id="rounds" placeholder="Rounds">
-<br>
-<button onclick="startIntervals()">Start</button>
-<button onclick="stopIntervals()">Stop</button>
-<h3 id="intervalDisplay">Ready</h3>
-
-<hr>
-
-<h2>🎖 Standards Tracker</h2>
-<input id="pushups" placeholder="Max Push-ups">
-<input id="pullups" placeholder="Max Pull-ups">
-<input id="run2k" placeholder="2km Time (min)">
-<input id="tab15k" placeholder="15km Tab Time (min)">
-<button onclick="saveStandards()">Save</button>
-<div id="standardsDisplay"></div>
-
-<hr>
-
-<h2>📈 Push-up Progress</h2>
-<canvas id="pushupChart" width="300" height="150"></canvas>
-
-<hr>
-
-<h2>🧠 Fatigue Tracker</h2>
-<input type="range" id="fatigue" min="1" max="10">
-<button onclick="saveFatigue()">Save Fatigue</button>
-<div id="fatigueDisplay"></div>
-
-<hr>
-
-<h2>🏆 PRDV Readiness Score</h2>
-<div id="readinessScore"></div>
-
-  <hr>
-
-<h2>🎖 Rank Status</h2>
-<div id="rankDisplay"></div>
-
-<hr>
-
-<h2>🏃 2KM Race Mode</h2>
-<button onclick="start2kMode()">Start 2KM Countdown</button>
-<h3 id="raceModeDisplay">Ready</h3>
-
-<hr>
-
-<h2>💀 Selection Status</h2>
-<div id="selectionStatus"></div>
-
-  <hr>
-
-<h2>🧭 GPS Run Tracker</h2>
-<button onclick="startGPS()">Start Run</button>
-<button onclick="stopGPS()">Stop Run</button>
-<div id="gpsDisplay">Distance: 0 km | Pace: 0</div>
-
-<hr>
-
-<h2>📊 Performance Dashboard</h2>
-<div id="dashboard"></div>
-
-<hr>
-
-<h2>🎯 PRDV Score Simulation</h2>
-<button onclick="simulatePRDV()">Run Simulation</button>
-<div id="simulationResult"></div>
-
-<hr>
+<!-- ================= MOCK MODE ================= -->
 
 <h2>🏁 3-Day PRDV Mock Mode</h2>
 <button onclick="startMockDay(1)">Start Day 1</button>
@@ -112,20 +37,36 @@
 
 <hr>
 
+<!-- ================= SPLIT COACH ================= -->
+
+<h2>🎧 400m Split Coach</h2>
+<button onclick="startSplitCoach()">Start 400m Beep Coach</button>
+<div id="splitDisplay"></div>
+
+<hr>
+
+<!-- ================= RISK ================= -->
+
 <h2>🧠 Risk Analysis</h2>
 <div id="riskDisplay"></div>
 
 <hr>
 
-<h2>🎧 400m Split Coach</h2>
-<button onclick="startSplitCoach()">Start 400m Beep Coach</button>
-<div id="splitDisplay"></div>
-  
-<!-- Chart.js Library -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<!-- ================= CLOUD SAVE ================= -->
 
-<!-- Main Script -->
-<script src="script.js"></script>
+<h2>☁️ Save Performance</h2>
+<button onclick="savePerformance()">Save Current Performance</button>
+
+<hr>
+
+<!-- ================= LEADERBOARD ================= -->
+
+<h2>🏆 Leaderboard (Push-ups)</h2>
+<button onclick="loadLeaderboard()">Load Leaderboard</button>
+<div id="leaderboard"></div>
+
+<!-- IMPORTANT: LOAD AS MODULE -->
+<script type="module" src="script.js"></script>
 
 </body>
 </html>
