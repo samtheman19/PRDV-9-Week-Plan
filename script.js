@@ -277,3 +277,16 @@ function riskAnalysis() {
 window.onload = function() {
   riskAnalysis();
 };
+
+window.setManualData = function() {
+
+  const push = document.getElementById("manualPushups").value;
+  const pull = document.getElementById("manualPullups").value;
+  const fatigue = document.getElementById("manualFatigue").value;
+
+  localStorage.setItem("pushups", push);
+  localStorage.setItem("pullups", pull);
+  localStorage.setItem("fatigue", fatigue);
+
+  alert("Manual performance data set.");
+};
