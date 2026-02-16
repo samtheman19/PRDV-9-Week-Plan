@@ -1,100 +1,116 @@
-/* ---------------- GLOBAL DATA ---------------- */
+/* ===============================
+   GLOBAL STATE
+================================ */
 
 let runDistance = 0;
 let watchId;
 let startTime;
+let splitTimer;
 
-/* ---------------- GPS TRACKING ---------------- */
+/* ===============================
+   3-DAY MOCK PRDV MODE
+================================ */
 
-function startGPS() {
-  runDistance = 0;
-  startTime = Date.now();
+function startMockDay(day) {
+  const display = document.getElementById("mockDisplay");
 
-  if (navigator.geolocation) {
-    watchId = navigator.geolocation.watchPosition(updatePosition);
-  }
+  if (day === 1)
+    display.innerText = "Day 1: 2KM + Push/Pull Test";
+  if (day === 2)
+    display.innerText = "Day 2: 15KM Loaded Tab Simulation";
+  if (day === 3)
+    display.innerText = "Day 3: Hills + Circuit Under Fatigue";
+
+  localStorage.setItem("mockDay", day);
 }
 
-function stopGPS() {
-  navigator.geolocation.clearWatch(watchId);
+/* ===============================
+   SPLIT COACH (400m Beep)
+================================ */
+
+function startSplitCoach() {
+  let splits = 5; // 2km = 5 x 400m
+  let targetTime = 480; // 8 min
+  let splitTime = targetTime / splits;
+
+  let current = 1;
+
+  splitTimer = setInterval(() => {
+    if (current > splits) {
+      clearInterval(splitTimer);
+      document.getElementById("splitDisplay").innerText = "2KM COMPLETE";
+      return;
+    }
+
+    document.getElementById("splitDisplay").innerText =
+      "400m Split " + current;
+
+    beep();
+    current++;
+
+  }, splitTime * 1000);
 }
 
-function updatePosition(position) {
-  if (!window.lastPosition) {
-    window.lastPosition = position;
-    return;
-  }
-
-  const R = 6371;
-  let dLat = (position.coords.latitude - window.lastPosition.coords.latitude) * Math.PI/180;
-  let dLon = (position.coords.longitude - window.lastPosition.coords.longitude) * Math.PI/180;
-
-  let a = Math.sin(dLat/2)*Math.sin(dLat/2) +
-    Math.cos(window.lastPosition.coords.latitude*Math.PI/180) *
-    Math.cos(position.coords.latitude*Math.PI/180) *
-    Math.sin(dLon/2)*Math.sin(dLon/2);
-
-  let c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-  let distance = R * c;
-
-  runDistance += distance;
-  window.lastPosition = position;
-
-  let elapsed = (Date.now() - startTime)/1000/60;
-  let pace = elapsed > 0 ? (elapsed/runDistance).toFixed(2) : 0;
-
-  document.getElementById("gpsDisplay").innerText =
-    "Distance: " + runDistance.toFixed(2) + " km | Pace: " + pace + " min/km";
+function beep() {
+  const audio = new Audio("https://actions.google.com/sounds/v1/alarms/beep_short.ogg");
+  audio.play();
 }
 
-/* ---------------- PRDV SIMULATION ---------------- */
+/* ===============================
+   FATIGUE + INJURY RISK MODEL
+================================ */
 
-function simulatePRDV() {
-  let pushups = parseInt(localStorage.getItem("pushups")) || 0;
-  let pullups = parseInt(localStorage.getItem("pullups")) || 0;
+function riskAnalysis() {
   let fatigue = parseInt(localStorage.getItem("fatigue")) || 5;
+  let pushups = parseInt(localStorage.getItem("pushups")) || 0;
 
-  let score = pushups + (pullups * 2) - fatigue;
+  let injuryRisk = fatigue > 7 ? "HIGH" : fatigue > 5 ? "MODERATE" : "LOW";
+  let overtraining = (fatigue > 8 && pushups < 30) ? "YES" : "NO";
 
-  let result;
-
-  if (score > 70) result = "🟢 PASS – Strong Candidate";
-  else if (score > 50) result = "🟡 BORDERLINE – Improve";
-  else result = "🔴 FAIL – Below Standard";
-
-  document.getElementById("simulationResult").innerText = result;
-
-  updateDashboard(score);
-}
-
-/* ---------------- DASHBOARD ---------------- */
-
-function updateDashboard(score) {
-  const dash = document.getElementById("dashboard");
-
-  dash.innerHTML = `
-    Push-ups: ${localStorage.getItem("pushups") || 0}<br>
-    Pull-ups: ${localStorage.getItem("pullups") || 0}<br>
-    Fatigue: ${localStorage.getItem("fatigue") || 5}<br>
-    Simulation Score: ${score}
+  document.getElementById("riskDisplay").innerHTML = `
+    Injury Risk: ${injuryRisk}<br>
+    Overtraining Risk: ${overtraining}
   `;
 }
 
-/* ---------------- ADAPTIVE TRAINING ---------------- */
+/* ===============================
+   ADAPTIVE ENGINE
+================================ */
 
-function adaptiveAdvice() {
+function adaptiveEngine() {
+  let fatigue = parseInt(localStorage.getItem("fatigue")) || 5;
   let pushups = parseInt(localStorage.getItem("pushups")) || 0;
   let pullups = parseInt(localStorage.getItem("pullups")) || 0;
 
+  if (fatigue > 8)
+    return "Reduce volume 20% this week.";
   if (pushups < 35)
-    return "Increase push-up volume 3x per week.";
+    return "Add push-up density sessions.";
   if (pullups < 10)
     return "Add weighted pull-ups twice weekly.";
-  return "Maintain intensity. Focus on tab endurance.";
+  return "Maintain intensity. Focus on tab speed.";
 }
 
-/* ---------------- AUTO LOAD ---------------- */
+/* ===============================
+   CLOUD READY STRUCTURE
+================================ */
+
+function exportData() {
+  const data = {
+    pushups: localStorage.getItem("pushups"),
+    pullups: localStorage.getItem("pullups"),
+    fatigue: localStorage.getItem("fatigue"),
+    mockDay: localStorage.getItem("mockDay")
+  };
+
+  console.log("Export Ready:", JSON.stringify(data));
+}
+
+/* ===============================
+   AUTO LOAD
+================================ */
 
 window.onload = function() {
-  updateDashboard(0);
+  riskAnalysis();
+  console.log("Adaptive Advice:", adaptiveEngine());
 };
