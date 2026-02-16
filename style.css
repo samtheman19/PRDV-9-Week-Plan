@@ -1,20 +1,56 @@
 body {
   font-family: Arial, sans-serif;
-  background-color: #111;
-  color: #fff;
+  background-color: #0f1a0f;
+  color: #d4ff00;
   text-align: center;
+  margin: 0;
+  padding: 0;
 }
 
 h1 {
-  margin-top: 20px;
+  padding: 20px;
 }
 
-#plan-display {
+.controls {
+  margin: 15px;
+}
+
+#days {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.day-card {
+  background: #1c2b1c;
+  width: 90%;
+  max-width: 500px;
+  margin: 10px;
+  padding: 15px;
+  border-radius: 8px;
+  text-align: left;
+}
+
+.day-card h3 {
+  margin-top: 0;
+}
+
+.timer {
   margin-top: 30px;
   padding: 20px;
-  background: #222;
-  border-radius: 10px;
-  width: 60%;
-  margin-left: auto;
-  margin-right: auto;
+}
+
+#time {
+  font-size: 2em;
+  margin: 10px 0;
+}
+
+button {
+  background: #2f4f2f;
+  color: #d4ff00;
+  border: none;
+  padding: 10px 15px;
+  margin: 5px;
+  border-radius: 5px;
+  cursor: pointer;
 }
