@@ -1,16 +1,16 @@
 /* ===============================
-   GLOBAL RESET
+   GLOBAL DARK THEME
 ================================ */
 
 * {
   box-sizing: border-box;
-  font-family: -apple-system, BlinkMacSystemFont, 
-               "Segoe UI", Roboto, sans-serif;
 }
 
 body {
   margin: 0;
-  background: #0b0f14;
+  font-family: -apple-system, BlinkMacSystemFont, 
+               "Segoe UI", Roboto, Oxygen, Ubuntu, sans-serif;
+  background: #05080f;
   color: #e6edf3;
   padding: 20px;
 }
@@ -20,43 +20,38 @@ body {
 ================================ */
 
 h1 {
-  font-size: 28px;
+  font-size: 26px;
   font-weight: 700;
   margin-bottom: 20px;
 }
 
 h2 {
-  margin-top: 30px;
-  font-size: 20px;
+  font-size: 18px;
+  margin-bottom: 15px;
   font-weight: 600;
 }
 
-h3 {
-  font-size: 16px;
-  margin-top: 20px;
-  opacity: 0.8;
+/* ===============================
+   SECTION DIVIDERS
+================================ */
+
+hr {
+  border: none;
+  height: 1px;
+  background: rgba(255,255,255,0.08);
+  margin: 30px 0;
 }
 
 /* ===============================
    CARD SYSTEM
 ================================ */
 
-hr {
-  border: none;
-  height: 1px;
-  background: #1f2933;
-  margin: 25px 0;
-}
-
-section, 
-.card,
-div[id$="Display"],
-#leaderboard,
-#sessionHistory {
-  background: #111827;
-  padding: 18px;
-  border-radius: 14px;
-  margin-top: 10px;
+.card {
+  background: #0d1420;
+  padding: 20px;
+  border-radius: 16px;
+  margin-bottom: 20px;
+  box-shadow: 0 0 0 1px rgba(255,255,255,0.04);
 }
 
 /* ===============================
@@ -64,75 +59,80 @@ div[id$="Display"],
 ================================ */
 
 input {
-  background: #1f2933;
-  border: 1px solid #2d3748;
+  width: 100%;
+  padding: 14px;
+  margin-bottom: 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,0.08);
+  background: #111a28;
   color: white;
-  padding: 10px;
-  border-radius: 10px;
-  margin: 6px 4px 6px 0;
-  width: 45%;
+  font-size: 14px;
 }
 
-input:focus {
-  outline: none;
-  border-color: #3b82f6;
+input::placeholder {
+  color: rgba(255,255,255,0.4);
 }
 
 /* ===============================
-   BUTTONS
+   BUTTON SYSTEM
 ================================ */
 
 button {
-  background: #1f2933;
-  color: white;
+  padding: 12px 18px;
+  border-radius: 12px;
   border: none;
-  padding: 10px 16px;
-  border-radius: 10px;
-  margin: 6px 4px;
+  font-weight: 600;
   cursor: pointer;
-  transition: 0.2s ease;
+  margin: 6px 6px 6px 0;
+  background: #1c2636;
+  color: white;
+  transition: all 0.2s ease;
 }
 
 button:hover {
-  background: #2563eb;
+  background: #263449;
 }
 
-button:active {
-  transform: scale(0.96);
+/* PRIMARY BUTTON (Blue like screenshot) */
+
+.primary {
+  background: #2f6df6;
 }
 
-/* Primary Action */
-button.primary {
-  background: #2563eb;
+.primary:hover {
+  background: #1f5be0;
 }
 
 /* ===============================
-   STATUS TEXT
+   STATUS PANELS
+================================ */
+
+.status-box {
+  background: #0f1c30;
+  padding: 16px;
+  border-radius: 14px;
+  margin-top: 10px;
+}
+
+/* ===============================
+   LEADERBOARD / ANALYTICS BOX
+================================ */
+
+.analytics-box {
+  background: #0c1627;
+  border-radius: 18px;
+  padding: 20px;
+  margin-top: 15px;
+}
+
+/* ===============================
+   SMALL TEXT
 ================================ */
 
 #userStatus {
   margin-top: 10px;
-  opacity: 0.8;
-}
-
-/* ===============================
-   CHART CANVAS
-================================ */
-
-canvas {
-  background: #0f172a;
-  border-radius: 12px;
-  padding: 10px;
-  margin-top: 10px;
-}
-
-/* ===============================
-   LEADERBOARD STYLE
-================================ */
-
-#leaderboard {
+  opacity: 0.7;
   font-size: 14px;
-  line-height: 1.6;
 }
 
 /* ===============================
@@ -140,7 +140,7 @@ canvas {
 ================================ */
 
 @media (max-width: 600px) {
-  input {
-    width: 100%;
+  body {
+    padding: 15px;
   }
 }
