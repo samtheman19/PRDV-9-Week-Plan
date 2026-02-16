@@ -20,7 +20,7 @@ from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
 ================================ */
 
 const firebaseConfig = {
-  apiKey: "AIzaSyD7sHTLny_kAtTN_xXmkovFC-GSTtFMeNo",
+  apiKey: "YOUR_KEY",
   authDomain: "prdv-platform.firebaseapp.com",
   projectId: "prdv-platform",
   storageBucket: "prdv-platform.firebasestorage.app",
@@ -33,22 +33,22 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 
 /* ===============================
-   AUTH SYSTEM
+   AUTH
 ================================ */
 
-window.register = async function() {
+window.register = async () => {
   try {
     await createUserWithEmailAndPassword(auth, email.value, password.value);
   } catch (e) { alert(e.message); }
 };
 
-window.login = async function() {
+window.login = async () => {
   try {
     await signInWithEmailAndPassword(auth, email.value, password.value);
   } catch (e) { alert(e.message); }
 };
 
-window.logout = function() { signOut(auth); };
+window.logout = () => signOut(auth);
 
 onAuthStateChanged(auth, (user) => {
   userStatus.innerText =
@@ -56,7 +56,67 @@ onAuthStateChanged(auth, (user) => {
 });
 
 /* ===============================
-   READINESS RING ENGINE
+   10 WEEK 2KM ENGINE (7:50 START)
+================================ */
+
+const trainingProgram = [
+  { week:1, focus:"Base Speed", workout:"6 x 400m @ 1:38 pace" },
+  { week:2, focus:"Speed Build", workout:"8 x 400m @ 1:36 pace" },
+  { week:3, focus:"Threshold", workout:"3 x 800m @ 3:20 pace" },
+  { week:4, focus:"Volume", workout:"5 x 600m @ 2:20 pace" },
+  { week:5, focus:"Speed", workout:"10 x 200m fast (40 sec)" },
+  { week:6, focus:"Strength", workout:"4 x 1km @ 3:50 pace" },
+  { week:7, focus:"Sharpening", workout:"6 x 400m @ 1:32 pace" },
+  { week:8, focus:"Race Simulation", workout:"Full 2KM Time Trial" },
+  { week:9, focus:"Peak", workout:"4 x 400m @ 1:28 pace" },
+  { week:10, focus:"Final Test", workout:"2KM Max Effort — Target 7:00" }
+];
+
+function getCurrentWeek() {
+  let startDate = localStorage.getItem("programStart");
+  if (!startDate) {
+    startDate = Date.now();
+    localStorage.setItem("programStart", startDate);
+  }
+
+  const diff = Date.now() - startDate;
+  const week = Math.floor(diff / (7 * 24 * 60 * 60 * 1000)) + 1;
+  return week > 10 ? 10 : week;
+}
+
+function displayWorkout() {
+
+  const week = getCurrentWeek();
+  const plan = trainingProgram[week - 1];
+
+  let existing = document.getElementById("todayWorkout");
+  if (existing) existing.remove();
+
+  const workoutCard = document.createElement("div");
+  workoutCard.className = "card";
+  workoutCard.id = "todayWorkout";
+
+  workoutCard.innerHTML = `
+    <h2>🔥 Today’s Mission</h2>
+    <strong>Week ${week}: ${plan.focus}</strong>
+    <p style="margin-top:10px">${plan.workout}</p>
+    <button onclick="resetProgram()" style="margin-top:15px">
+      Reset Program
+    </button>
+  `;
+
+  document.querySelector(".container")
+    .insertBefore(workoutCard,
+      document.querySelector(".container").children[1]);
+}
+
+window.resetProgram = function() {
+  localStorage.removeItem("programStart");
+  displayWorkout();
+};
+
+/* ===============================
+   READINESS ENGINE
 ================================ */
 
 function updateReadinessUI(score) {
@@ -68,27 +128,13 @@ function updateReadinessUI(score) {
   const circumference = 2 * Math.PI * radius;
 
   circle.style.strokeDasharray = `${circumference}`;
-  circle.style.strokeDashoffset = circumference;
 
   const percent = Math.min(score / 150, 1);
   const offset = circumference - percent * circumference;
 
-  setTimeout(() => {
-    circle.style.strokeDashoffset = offset;
-  }, 100);
+  circle.style.strokeDashoffset = offset;
 
-  // Animated number count up
-  let current = 0;
-  const scoreDisplay = document.getElementById("scoreValue");
-
-  const interval = setInterval(() => {
-    if (current >= score) {
-      clearInterval(interval);
-    } else {
-      current++;
-      scoreDisplay.innerText = current;
-    }
-  }, 10);
+  document.getElementById("scoreValue").innerText = score;
 
   const label = document.getElementById("readinessLabel");
 
@@ -109,16 +155,12 @@ function updateReadinessUI(score) {
 ================================ */
 
 function updateRank(pushups) {
-
   let rank = "Recruit";
-
   if (pushups >= 30) rank = "Trained";
   if (pushups >= 45) rank = "Advanced";
   if (pushups >= 60) rank = "Operator";
   if (pushups >= 75) rank = "Elite";
-
-  const rankEl = document.getElementById("rankStatus");
-  if (rankEl) rankEl.innerText = rank;
+  rankStatus.innerText = rank;
 }
 
 /* ===============================
@@ -128,20 +170,15 @@ function updateRank(pushups) {
 window.savePerformance = async function() {
 
   const user = auth.currentUser;
-  if (!user) {
-    alert("Login first.");
-    return;
-  }
+  if (!user) return alert("Login first.");
 
   const pushups = parseInt(localStorage.getItem("pushups")) || 0;
   const pullups = parseInt(localStorage.getItem("pullups")) || 0;
   const fatigue = parseInt(localStorage.getItem("fatigue")) || 5;
-  const mockDay = localStorage.getItem("mockDay") || null;
 
   const readinessScore =
     (pushups * 2) + (pullups * 3) - (fatigue * 3);
 
-  // 🔥 FINAL FORM UPDATES
   updateReadinessUI(readinessScore);
   updateRank(pushups);
 
@@ -151,91 +188,12 @@ window.savePerformance = async function() {
       pushups,
       pullups,
       fatigue,
-      mockDay,
       readinessScore,
       timestamp: Date.now()
     }
   );
 
-  await setDoc(doc(db, "users", user.uid), {
-    email: user.email,
-    latestPushups: pushups,
-    latestPullups: pullups,
-    latestFatigue: fatigue,
-    latestReadiness: readinessScore,
-    updated: Date.now()
-  });
-
   alert("Session saved.");
-};
-
-/* ===============================
-   LEADERBOARD
-================================ */
-
-window.loadLeaderboard = async function() {
-
-  const q = query(
-    collection(db, "users"),
-    orderBy("latestReadiness", "desc"),
-    limit(10)
-  );
-
-  const snapshot = await getDocs(q);
-
-  let html = "";
-  snapshot.forEach(doc => {
-    const data = doc.data();
-    html += `${data.email || "User"} — ${data.latestReadiness || 0}<br>`;
-  });
-
-  leaderboard.innerHTML = html;
-};
-
-/* ===============================
-   ANALYTICS
-================================ */
-
-window.loadAnalytics = async function() {
-
-  const user = auth.currentUser;
-  if (!user) return alert("Login first.");
-
-  const q = query(
-    collection(db, "users", user.uid, "sessions"),
-    orderBy("timestamp", "asc")
-  );
-
-  const snapshot = await getDocs(q);
-
-  let pushups = [];
-  let fatigue = [];
-  let labels = [];
-  let count = 1;
-
-  snapshot.forEach(doc => {
-    const data = doc.data();
-    pushups.push(data.pushups);
-    fatigue.push(data.fatigue);
-    labels.push("S" + count);
-    count++;
-  });
-
-  new Chart(pushupTrend, {
-    type: "line",
-    data: {
-      labels,
-      datasets: [{ label: "Pushups", data: pushups }]
-    }
-  });
-
-  new Chart(fatigueTrend, {
-    type: "line",
-    data: {
-      labels,
-      datasets: [{ label: "Fatigue", data: fatigue }]
-    }
-  });
 };
 
 /* ===============================
@@ -249,7 +207,6 @@ window.startMockDay = function(day) {
     3: "Day 3: Hills + Circuit"
   };
   mockDisplay.innerText = messages[day];
-  localStorage.setItem("mockDay", day);
 };
 
 /* ===============================
@@ -261,7 +218,7 @@ let splitTimer;
 window.startSplitCoach = function() {
 
   let splits = 5;
-  let targetTime = 480;
+  let targetTime = 470; // based on 7:50
   let splitTime = targetTime / splits;
   let current = 1;
 
@@ -274,17 +231,14 @@ window.startSplitCoach = function() {
     }
 
     splitDisplay.innerText = "400m Split " + current;
-    beep();
+    new Audio(
+      "https://actions.google.com/sounds/v1/alarms/beep_short.ogg"
+    ).play();
+
     current++;
 
   }, splitTime * 1000);
 };
-
-function beep() {
-  new Audio(
-    "https://actions.google.com/sounds/v1/alarms/beep_short.ogg"
-  ).play();
-}
 
 /* ===============================
    MANUAL DATA
@@ -292,11 +246,11 @@ function beep() {
 
 window.setManualData = function() {
   localStorage.setItem("pushups",
-    document.getElementById("manualPushups").value);
+    manualPushups.value);
   localStorage.setItem("pullups",
-    document.getElementById("manualPullups").value);
+    manualPullups.value);
   localStorage.setItem("fatigue",
-    document.getElementById("manualFatigue").value);
+    manualFatigue.value);
   alert("Manual performance data set.");
 };
 
@@ -310,4 +264,12 @@ window.toggleOperatorMode = function() {
 
 window.exportData = function() {
   alert("Export feature coming soon.");
+};
+
+/* ===============================
+   INIT
+================================ */
+
+window.onload = function() {
+  displayWorkout();
 };
