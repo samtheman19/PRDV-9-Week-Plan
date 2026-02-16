@@ -1,16 +1,16 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>PRDV 9 Week Plan</title>
+  <title>PRDV Tactical Plan</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<h1>🪖 PRDV 9 Week Training Plan</h1>
+<h1>🪖 PRDV 9 Week Tactical Plan</h1>
 
-<div id="week-selector">
+<div class="controls">
   <label>Select Week:</label>
-  <select id="week" onchange="loadWeek()">
+  <select id="weekSelect" onchange="loadWeek()">
     <option value="1">Week 1</option>
     <option value="2">Week 2</option>
     <option value="3">Week 3</option>
@@ -23,9 +23,16 @@
   </select>
 </div>
 
-<div id="plan-display"></div>
+<div id="days"></div>
+
+<div class="timer">
+  <h2>Workout Timer</h2>
+  <div id="time">00:00</div>
+  <button onclick="startTimer()">Start</button>
+  <button onclick="stopTimer()">Stop</button>
+  <button onclick="resetTimer()">Reset</button>
+</div>
 
 <script src="script.js"></script>
-
 </body>
 </html>
