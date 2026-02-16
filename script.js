@@ -17,6 +17,10 @@ import {
   orderBy
 } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
 
+/* ===============================
+   FIREBASE CONFIG
+================================ */
+
 const firebaseConfig = {
   apiKey: "YOUR_KEY",
   authDomain: "prdv-platform.firebaseapp.com",
@@ -42,15 +46,11 @@ window.login = async () =>
 window.logout = () => signOut(auth);
 
 /* ===============================
-   XP + RANK SYSTEM
+   XP SYSTEM
 ================================ */
 
 function calculateXP(push,pull,twoKm){
-  let xp = 0;
-  xp += push * 2;
-  xp += pull * 4;
-  xp += Math.max(0,500-twoKm);
-  return xp;
+  return (push*2)+(pull*4)+Math.max(0,500-twoKm);
 }
 
 function getRank(xp){
@@ -60,6 +60,10 @@ function getRank(xp){
   if(xp<800) return "Operator";
   if(xp<1000) return "Elite";
   return "Tier 1";
+}
+
+function xpProgress(xp){
+  return Math.min((xp%200)/200*100,100);
 }
 
 /* ===============================
@@ -78,36 +82,31 @@ function recoveryState(score){
 }
 
 /* ===============================
-   MISSION INTENSITY ENGINE
+   MISSION ENGINE
 ================================ */
 
 function missionGenerator(twoKm,state){
-
-  let pace = twoKm/5;
-
+  const pace = twoKm/5;
   if(state==="GREEN") return `8 x 400m @ ${(pace-2).toFixed(1)}s`;
   if(state==="AMBER") return `6 x 400m @ ${pace.toFixed(1)}s`;
   return "Recovery Run + Mobility 30min";
 }
 
 /* ===============================
-   SELECTION PROBABILITY v2
+   SELECTION PROBABILITY
 ================================ */
 
 function selectionProbability(push,pull,twoKm){
-
   let prob = 40;
-
   if(push>50) prob+=15;
   if(pull>12) prob+=15;
   if(twoKm<450) prob+=20;
   if(twoKm<430) prob+=10;
-
   return Math.min(prob,95);
 }
 
 /* ===============================
-   DASHBOARD DISPLAY
+   DASHBOARD RENDER
 ================================ */
 
 function renderDashboard(data){
@@ -115,20 +114,31 @@ function renderDashboard(data){
   const container = document.getElementById("todayWorkout");
   if(!container) return;
 
+  const progress = xpProgress(data.xp);
+
   container.innerHTML = `
-    <div class="card">
-      <h2>⚔ Elite Battlefield Dashboard</h2>
-      <p><strong>Rank:</strong> ${data.rank}</p>
-      <p><strong>XP:</strong> ${data.xp}</p>
-      <p><strong>Recovery:</strong> ${data.state}</p>
-      <p><strong>Mission:</strong> ${data.workout}</p>
-      <p><strong>Selection Probability:</strong> ${data.selection}%</p>
-      <div style="height:10px;background:#1f2937;border-radius:6px;margin-top:10px;">
-        <div style="
-          height:10px;
-          width:${data.selection}%;
-          background:#10b981;
-          border-radius:6px;">
+    <div class="card battle-dashboard">
+      <h2>⚔ ELITE COMMAND CENTER</h2>
+
+      <div class="rank-glow">${data.rank}</div>
+
+      <p>XP: ${data.xp}</p>
+
+      <div class="progress-container">
+        <div class="progress-bar" style="width:${progress}%"></div>
+      </div>
+
+      <p style="margin-top:15px;">
+        Recovery: <strong>${data.state}</strong>
+      </p>
+
+      <p>Mission: ${data.workout}</p>
+
+      <p>Selection Probability: ${data.selection}%</p>
+
+      <div class="progress-container">
+        <div class="progress-bar"
+             style="width:${data.selection}%">
         </div>
       </div>
     </div>
@@ -169,7 +179,15 @@ window.savePerformance = async function(){
 };
 
 /* ===============================
-   INIT
+   RESISTANCE MODE
+================================ */
+
+window.toggleResistance = function(){
+  document.body.classList.toggle("resistance");
+};
+
+/* ===============================
+   INIT LOAD
 ================================ */
 
 window.onload = function(){
@@ -180,7 +198,9 @@ window.onload = function(){
 
   const xp = calculateXP(push,pull,twoKm);
   const rank = getRank(xp);
-  const state = "GREEN";
+
+  const recScore = recoveryScore(push,pull,5,7);
+  const state = recoveryState(recScore);
   const workout = missionGenerator(twoKm,state);
   const selection = selectionProbability(push,pull,twoKm);
 
