@@ -248,3 +248,79 @@ button {
     width: 100%;
   }
 }
+
+/* ===============================
+   NAVBAR
+================================ */
+
+.navbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  background: rgba(10, 15, 25, 0.9);
+  backdrop-filter: blur(20px);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 20px;
+  z-index: 1000;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+
+.nav-title {
+  font-weight: 600;
+}
+
+.container {
+  margin-top: 80px;
+}
+
+/* ===============================
+   READINESS BADGE
+================================ */
+
+.readiness {
+  padding: 14px;
+  border-radius: 14px;
+  font-weight: 600;
+  text-align: center;
+  animation: pulse 2s infinite;
+}
+
+.green {
+  background: rgba(16,185,129,0.15);
+  color: #10b981;
+}
+
+.amber {
+  background: rgba(245,158,11,0.15);
+  color: #f59e0b;
+}
+
+.red {
+  background: rgba(239,68,68,0.15);
+  color: #ef4444;
+}
+
+@keyframes pulse {
+  0% { box-shadow: 0 0 0 0 rgba(16,185,129,0.4); }
+  70% { box-shadow: 0 0 0 10px rgba(16,185,129,0); }
+  100% { box-shadow: 0 0 0 0 rgba(16,185,129,0); }
+}
+
+/* ===============================
+   BOTTOM ACTION BAR
+================================ */
+
+.bottom-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  background: rgba(10,15,25,0.95);
+  display: flex;
+  justify-content: space-around;
+  padding: 12px;
+  border-top: 1px solid rgba(255,255,255,0.05);
+}
