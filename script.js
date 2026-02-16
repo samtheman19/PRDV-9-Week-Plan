@@ -50,118 +50,178 @@ window.login = async () => {
 
 window.logout = () => signOut(auth);
 
-onAuthStateChanged(auth, (user) => {
-  userStatus.innerText =
-    user ? "Logged in as " + user.email : "Not logged in";
+onAuthStateChanged(auth, () => {
+  displayWorkout();
 });
 
 /* ===============================
-   10 WEEK 2KM ENGINE (7:50 START)
+   PROGRAM ENGINE
 ================================ */
 
-const trainingProgram = [
-  { week:1, focus:"Base Speed", workout:"6 x 400m @ 1:38 pace" },
-  { week:2, focus:"Speed Build", workout:"8 x 400m @ 1:36 pace" },
-  { week:3, focus:"Threshold", workout:"3 x 800m @ 3:20 pace" },
-  { week:4, focus:"Volume", workout:"5 x 600m @ 2:20 pace" },
-  { week:5, focus:"Speed", workout:"10 x 200m fast (40 sec)" },
-  { week:6, focus:"Strength", workout:"4 x 1km @ 3:50 pace" },
-  { week:7, focus:"Sharpening", workout:"6 x 400m @ 1:32 pace" },
-  { week:8, focus:"Race Simulation", workout:"Full 2KM Time Trial" },
-  { week:9, focus:"Peak", workout:"4 x 400m @ 1:28 pace" },
-  { week:10, focus:"Final Test", workout:"2KM Max Effort — Target 7:00" }
-];
+const BASE_2KM = 470; // 7:50 baseline
 
 function getCurrentWeek() {
-  let startDate = localStorage.getItem("programStart");
-  if (!startDate) {
-    startDate = Date.now();
-    localStorage.setItem("programStart", startDate);
+  let start = localStorage.getItem("programStart");
+  if (!start) {
+    start = Date.now();
+    localStorage.setItem("programStart", start);
   }
-
-  const diff = Date.now() - startDate;
-  const week = Math.floor(diff / (7 * 24 * 60 * 60 * 1000)) + 1;
+  const diff = Date.now() - start;
+  const week = Math.floor(diff / (7*24*60*60*1000)) + 1;
   return week > 10 ? 10 : week;
 }
+
+/* ===============================
+   RECOVERY INTELLIGENCE
+================================ */
+
+function calculateRecovery(pushups, pullups, fatigue, sleep) {
+
+  const sleepScore = sleep >= 8 ? 15 :
+                     sleep >= 7 ? 10 :
+                     sleep >= 6 ? 5 : -15;
+
+  const readiness =
+    (pushups * 2) +
+    (pullups * 3) -
+    (fatigue * 3) +
+    sleepScore;
+
+  return readiness;
+}
+
+function getRecoveryState(score) {
+  if (score >= 100) return "GREEN";
+  if (score >= 60) return "AMBER";
+  return "RED";
+}
+
+function updateRecoveryInsight(score) {
+  const state = getRecoveryState(score);
+  const insight = document.getElementById("recoveryInsight");
+
+  if (!insight) return;
+
+  if (state === "GREEN")
+    insight.innerText = "High readiness. Increase intensity.";
+  else if (state === "AMBER")
+    insight.innerText = "Moderate readiness. Maintain load.";
+  else
+    insight.innerText = "Low readiness. Reduce volume 30%.";
+}
+
+/* ===============================
+   AUTO INTENSITY SCALING
+================================ */
+
+function getScaledWorkout(baseWorkout, recoveryState) {
+
+  if (recoveryState === "GREEN")
+    return baseWorkout + " + 1 extra interval";
+
+  if (recoveryState === "RED")
+    return "Reduced Volume: " + baseWorkout;
+
+  return baseWorkout;
+}
+
+/* ===============================
+   TODAY WORKOUT DISPLAY
+================================ */
 
 function displayWorkout() {
 
   const week = getCurrentWeek();
-  const plan = trainingProgram[week - 1];
 
-  let existing = document.getElementById("todayWorkout");
-  if (existing) existing.remove();
+  const pushups = parseInt(localStorage.getItem("pushups")) || 0;
+  const pullups = parseInt(localStorage.getItem("pullups")) || 0;
+  const fatigue = parseInt(localStorage.getItem("fatigue")) || 5;
+  const sleep = parseFloat(localStorage.getItem("sleep")) || 7;
 
-  const workoutCard = document.createElement("div");
-  workoutCard.className = "card";
-  workoutCard.id = "todayWorkout";
+  const readiness = calculateRecovery(pushups, pullups, fatigue, sleep);
+  const recoveryState = getRecoveryState(readiness);
 
-  workoutCard.innerHTML = `
-    <h2>🔥 Today’s Mission</h2>
-    <strong>Week ${week}: ${plan.focus}</strong>
-    <p style="margin-top:10px">${plan.workout}</p>
-    <button onclick="resetProgram()" style="margin-top:15px">
-      Reset Program
-    </button>
+  const pace = (BASE_2KM / 5).toFixed(1);
+
+  const baseWorkout =
+    `5–8 x 400m @ ${pace}s (Week ${week})`;
+
+  const scaledWorkout =
+    getScaledWorkout(baseWorkout, recoveryState);
+
+  const container = document.getElementById("todayWorkout");
+  if (!container) return;
+
+  container.innerHTML = `
+    <div class="card">
+      <h2>🔥 Today’s Mission</h2>
+      <strong>${scaledWorkout}</strong>
+      <p style="margin-top:10px;opacity:0.6">
+        Recovery State: ${recoveryState}
+      </p>
+      <button onclick="resetProgram()">Reset Program</button>
+    </div>
   `;
 
-  document.querySelector(".container")
-    .insertBefore(workoutCard,
-      document.querySelector(".container").children[1]);
+  updateRecoveryInsight(readiness);
 }
 
-window.resetProgram = function() {
-  localStorage.removeItem("programStart");
-  displayWorkout();
+/* ===============================
+   WEEKLY SUMMARY
+================================ */
+
+window.generateWeeklySummary = async function() {
+
+  const user = auth.currentUser;
+  if (!user) return alert("Login first.");
+
+  const q = query(
+    collection(db, "users", user.uid, "sessions"),
+    orderBy("timestamp", "desc"),
+    limit(7)
+  );
+
+  const snapshot = await getDocs(q);
+
+  let totalReadiness = 0;
+  let count = 0;
+
+  snapshot.forEach(doc => {
+    totalReadiness += doc.data().readinessScore;
+    count++;
+  });
+
+  const avg = count ? (totalReadiness / count).toFixed(1) : 0;
+
+  alert("Weekly Average Readiness: " + avg);
 };
 
 /* ===============================
-   READINESS ENGINE
+   SELECTION SIMULATION
 ================================ */
 
-function updateReadinessUI(score) {
+window.runSelectionSimulation = function() {
 
-  const circle = document.querySelector(".progress-ring__circle");
-  if (!circle) return;
+  const pushups = parseInt(localStorage.getItem("pushups")) || 0;
+  const pullups = parseInt(localStorage.getItem("pullups")) || 0;
 
-  const radius = circle.r.baseVal.value;
-  const circumference = 2 * Math.PI * radius;
+  let result = "FAIL";
 
-  circle.style.strokeDasharray = `${circumference}`;
+  if (pushups >= 45 && pullups >= 12)
+    result = "PASS - SELECTION READY";
 
-  const percent = Math.min(score / 150, 1);
-  const offset = circumference - percent * circumference;
-
-  circle.style.strokeDashoffset = offset;
-
-  document.getElementById("scoreValue").innerText = score;
-
-  const label = document.getElementById("readinessLabel");
-
-  if (score >= 100) {
-    label.className = "readiness green";
-    label.innerText = "GREEN • READY";
-  } else if (score >= 60) {
-    label.className = "readiness amber";
-    label.innerText = "AMBER • BUILDING";
-  } else {
-    label.className = "readiness red";
-    label.innerText = "RED • IMPROVE";
-  }
-}
+  alert("Selection Simulation Result: " + result);
+};
 
 /* ===============================
-   RANK SYSTEM
+   CALENDAR VIEW
 ================================ */
 
-function updateRank(pushups) {
-  let rank = "Recruit";
-  if (pushups >= 30) rank = "Trained";
-  if (pushups >= 45) rank = "Advanced";
-  if (pushups >= 60) rank = "Operator";
-  if (pushups >= 75) rank = "Elite";
-  rankStatus.innerText = rank;
-}
+window.showCalendar = function() {
+
+  const week = getCurrentWeek();
+  alert("You are in Week " + week + " of 10.");
+};
 
 /* ===============================
    SAVE PERFORMANCE
@@ -172,15 +232,18 @@ window.savePerformance = async function() {
   const user = auth.currentUser;
   if (!user) return alert("Login first.");
 
-  const pushups = parseInt(localStorage.getItem("pushups")) || 0;
-  const pullups = parseInt(localStorage.getItem("pullups")) || 0;
-  const fatigue = parseInt(localStorage.getItem("fatigue")) || 5;
+  const pushups = parseInt(manualPushups.value) || 0;
+  const pullups = parseInt(manualPullups.value) || 0;
+  const fatigue = parseInt(manualFatigue.value) || 5;
+  const sleep = parseFloat(sleepHours.value) || 7;
 
-  const readinessScore =
-    (pushups * 2) + (pullups * 3) - (fatigue * 3);
+  localStorage.setItem("pushups", pushups);
+  localStorage.setItem("pullups", pullups);
+  localStorage.setItem("fatigue", fatigue);
+  localStorage.setItem("sleep", sleep);
 
-  updateReadinessUI(readinessScore);
-  updateRank(pushups);
+  const readiness =
+    calculateRecovery(pushups, pullups, fatigue, sleep);
 
   await addDoc(
     collection(db, "users", user.uid, "sessions"),
@@ -188,82 +251,32 @@ window.savePerformance = async function() {
       pushups,
       pullups,
       fatigue,
-      readinessScore,
+      sleep,
+      readinessScore: readiness,
       timestamp: Date.now()
     }
   );
+
+  displayWorkout();
 
   alert("Session saved.");
 };
 
 /* ===============================
-   MOCK MODE
+   UTILITIES
 ================================ */
 
-window.startMockDay = function(day) {
-  const messages = {
-    1: "Day 1: 2KM + Push/Pull Test",
-    2: "Day 2: 15KM Loaded Tab",
-    3: "Day 3: Hills + Circuit"
-  };
-  mockDisplay.innerText = messages[day];
-};
-
-/* ===============================
-   SPLIT COACH
-================================ */
-
-let splitTimer;
-
-window.startSplitCoach = function() {
-
-  let splits = 5;
-  let targetTime = 470; // based on 7:50
-  let splitTime = targetTime / splits;
-  let current = 1;
-
-  splitTimer = setInterval(() => {
-
-    if (current > splits) {
-      clearInterval(splitTimer);
-      splitDisplay.innerText = "2KM COMPLETE";
-      return;
-    }
-
-    splitDisplay.innerText = "400m Split " + current;
-    new Audio(
-      "https://actions.google.com/sounds/v1/alarms/beep_short.ogg"
-    ).play();
-
-    current++;
-
-  }, splitTime * 1000);
-};
-
-/* ===============================
-   MANUAL DATA
-================================ */
-
-window.setManualData = function() {
-  localStorage.setItem("pushups",
-    manualPushups.value);
-  localStorage.setItem("pullups",
-    manualPullups.value);
-  localStorage.setItem("fatigue",
-    manualFatigue.value);
-  alert("Manual performance data set.");
-};
-
-/* ===============================
-   OPERATOR MODE
-================================ */
-
-window.toggleOperatorMode = function() {
-  document.body.classList.toggle("operator");
+window.resetProgram = function() {
+  localStorage.removeItem("programStart");
+  displayWorkout();
 };
 
 window.exportData = function() {
   alert("Export feature coming soon.");
+};
+
+window.toggleOperatorMode = function() {
+  document.body.classList.toggle("operator");
 };
 
 /* ===============================
