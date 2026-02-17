@@ -1,31 +1,35 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>PRDV Tactical OS</title>
+  <title>PRDV Tactical OS – V4</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#0b0f17">
-
   <link rel="stylesheet" href="style.css">
 </head>
-
 <body>
 
 <div class="app">
 
-  <!-- HEADER -->
   <header class="header">
     <div class="logo">🪖 PRDV Tactical OS</div>
     <button class="elite-btn" onclick="toggleElite()">Elite</button>
   </header>
 
-  <!-- DATE NAVIGATION -->
   <div class="date-nav">
     <button onclick="changeDay(-1)">◀</button>
     <div id="currentDate"></div>
     <button onclick="changeDay(1)">▶</button>
   </div>
 
-  <!-- WORKOUT CARD -->
+  <div class="card timer-card">
+    <div class="timer" id="timer">00:00:00</div>
+    <div class="timer-buttons">
+      <button onclick="startTimer()">Start</button>
+      <button onclick="pauseTimer()">Pause</button>
+      <button onclick="endSession()">End</button>
+    </div>
+  </div>
+
   <div class="card" id="workoutCard"></div>
 
 </div>
