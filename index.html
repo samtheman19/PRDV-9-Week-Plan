@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>PRDV Tactical OS – V4</title>
+  <title>PRDV Tactical OS – V5 Elite</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#0b0f17">
   <link rel="stylesheet" href="style.css">
@@ -12,17 +12,29 @@
 
   <header class="header">
     <div class="logo">🪖 PRDV Tactical OS</div>
-    <button class="elite-btn" onclick="toggleElite()">Elite</button>
+    <div id="userStatus"></div>
   </header>
 
+  <!-- DATE NAV -->
   <div class="date-nav">
     <button onclick="changeDay(-1)">◀</button>
     <div id="currentDate"></div>
     <button onclick="changeDay(1)">▶</button>
   </div>
 
+  <!-- READINESS -->
+  <div class="card">
+    <h3>Readiness</h3>
+    <div class="readiness-grid">
+      <input id="sleepInput" type="number" placeholder="Sleep (hrs)">
+      <input id="fatigueInput" type="number" placeholder="Fatigue (1–10)">
+    </div>
+    <div id="readinessStatus"></div>
+  </div>
+
+  <!-- TIMER -->
   <div class="card timer-card">
-    <div class="timer" id="timer">00:00:00</div>
+    <div id="timer">00:00:00</div>
     <div class="timer-buttons">
       <button onclick="startTimer()">Start</button>
       <button onclick="pauseTimer()">Pause</button>
@@ -30,10 +42,23 @@
     </div>
   </div>
 
+  <!-- WORKOUT -->
   <div class="card" id="workoutCard"></div>
+
+  <!-- AUTH -->
+  <div class="card">
+    <h3>Login</h3>
+    <input id="email" placeholder="Email">
+    <input id="password" type="password" placeholder="Password">
+    <div class="auth-buttons">
+      <button onclick="register()">Register</button>
+      <button onclick="login()">Login</button>
+      <button onclick="logout()">Logout</button>
+    </div>
+  </div>
 
 </div>
 
-<script src="script.js"></script>
+<script type="module" src="script.js"></script>
 </body>
 </html>
