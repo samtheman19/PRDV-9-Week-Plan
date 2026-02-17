@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>PRDV Tactical OS – V9</title>
+  <title>PRDV Tactical OS – V10 Elite</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#0b0f17">
   <link rel="stylesheet" href="style.css">
@@ -12,13 +12,25 @@
 <div class="app">
 
   <header class="header">
-    <div class="logo">🪖 PRDV Tactical V9</div>
-    <div class="countdown" id="countdown"></div>
+    <div class="logo">🪖 PRDV Tactical V10</div>
+    <div id="countdown"></div>
   </header>
 
-  <!-- SRI CARD -->
-  <div class="card sri-card">
-    <div class="metric-title">Selection Readiness</div>
+  <!-- TODAY WORKOUT -->
+  <div id="todayWorkout"></div>
+
+  <!-- SESSION LOG -->
+  <div class="card">
+    <div class="metric-title">Log Today’s Session</div>
+
+    <div id="exerciseInputs"></div>
+
+    <button class="primary" onclick="saveSession()">Save Session</button>
+  </div>
+
+  <!-- METRICS -->
+  <div class="card">
+    <div class="metric-title">Selection Readiness Index</div>
     <div class="metric-value" id="sriValue">0</div>
     <div class="progress">
       <div id="sriBar" class="progress-fill"></div>
@@ -26,55 +38,19 @@
     <div id="sriStatus" class="metric-sub"></div>
   </div>
 
-  <!-- LOAD CARD -->
   <div class="card">
-    <div class="metric-title">Training Load Ratio</div>
-    <div class="metric-value" id="loadValue"></div>
+    <div class="metric-title">Acute:Chronic Load</div>
+    <div class="metric-value" id="loadValue">0</div>
     <div class="progress">
       <div id="loadBar" class="progress-fill"></div>
     </div>
     <div id="loadWarning" class="metric-sub"></div>
   </div>
 
-  <!-- AI CARD -->
-  <div class="card">
-    <div class="metric-title">AI Coaching</div>
-    <div id="aiAdvice" class="ai-text"></div>
-  </div>
-
-  <!-- PERFORMANCE INPUT -->
-  <div class="card">
-    <div class="metric-title">Performance Input</div>
-    <div class="grid">
-      <input id="pushInput" placeholder="Pushups">
-      <input id="pullInput" placeholder="Pullups">
-      <input id="twoKmInput" placeholder="2KM (sec)">
-      <input id="sleepInput" placeholder="Sleep (hrs)">
-      <input id="fatigueInput" placeholder="Fatigue (1-10)">
-    </div>
-    <button class="primary" onclick="updatePerformance()">Update</button>
-  </div>
-
-  <!-- TIMER -->
-  <div class="card">
-    <div class="metric-title">Session Timer</div>
-    <div id="timer" class="timer">00:00:00</div>
-    <div class="btn-row">
-      <button onclick="startTimer()">Start</button>
-      <button onclick="pauseTimer()">Pause</button>
-      <button onclick="endSession()">End</button>
-    </div>
-  </div>
-
-  <!-- CHARTS -->
+  <!-- CHART -->
   <div class="card">
     <div class="metric-title">Load Trend</div>
     <canvas id="loadChart"></canvas>
-  </div>
-
-  <div class="card">
-    <div class="metric-title">2KM Projection Trend</div>
-    <canvas id="twoKmChart"></canvas>
   </div>
 
 </div>
