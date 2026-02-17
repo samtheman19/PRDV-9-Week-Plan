@@ -1,215 +1,175 @@
-const START_DATE = new Date();
-const PEAK_DATE = new Date("2026-04-27");
+const startDate = new Date("2026-02-17");
+const endDate = new Date("2026-04-29");
+let currentDate = new Date(startDate);
 
-let selectedDate = new Date();
+const BASE_2KM = 470;
 
-/* =============================
-   DATE ENGINE
-============================= */
-
-function formatDate(date){
-  return date.toDateString();
+function formatDate(d){
+  return d.toDateString();
 }
 
-function getDaysBetween(a,b){
+function daysBetween(a,b){
   return Math.floor((b-a)/(1000*60*60*24));
 }
 
-function getWeekNumber(date){
-  const days = getDaysBetween(START_DATE,date);
-  return Math.max(1,Math.floor(days/7)+1);
+function getWeek(date){
+  return Math.floor(daysBetween(startDate,date)/7)+1;
 }
 
-function changeDay(offset){
-  selectedDate.setDate(selectedDate.getDate()+offset);
-  render();
+function getPhase(w){
+  if(w<=3) return "Foundation";
+  if(w<=7) return "Build";
+  if(w<=9) return "Peak";
+  return "Taper";
 }
 
-function goToToday(){
-  selectedDate = new Date();
-  render();
+function getSplit(){
+  const twoKm = parseInt(localStorage.getItem("twoKm")) || BASE_2KM;
+  return Math.round(twoKm/5);
 }
 
-/* =============================
-   PHASE ENGINE
-============================= */
+function renderWorkout(){
 
-function getPhase(week){
-  if(week<=4) return "Foundation Phase";
-  if(week<=8) return "Build Phase";
-  return "Peak Phase";
-}
+  const week = getWeek(currentDate);
+  const phase = getPhase(week);
+  const split = getSplit();
+  const day = currentDate.getDay();
 
-/* =============================
-   2KM TARGET ENGINE
-============================= */
+  document.getElementById("dateDisplay").innerText = formatDate(currentDate);
+  document.getElementById("phaseInfo").innerHTML =
+    `<strong>Week ${week}/10</strong><br>Phase: ${phase}`;
 
-function getTargetPace(){
-  const weeksLeft = 16 - getWeekNumber(selectedDate);
-  const base = 470; // 7:50
-  return base - (weeksLeft*3);
-}
+  let html = "";
 
-/* =============================
-   WORKOUT GENERATOR
-============================= */
-
-function getWorkoutForDate(date){
-
-  const week = getWeekNumber(date);
-  const day = date.getDay();
-
-  const split = (getTargetPace()/5).toFixed(1);
-
-  if(day===0){
-    return {
-      type:"Recovery",
-      exercises:[
-        {name:"Mobility Flow",sets:"20min"},
-        {name:"Zone 2 Run",sets:"40min"}
-      ]
-    };
+  if(day===2){
+    html += `
+    <div class="card">
+      <h3>VO2 Intervals</h3>
+      6-8 x 400m @ ${split}s<br>
+      Rest 90s
+      ${exerciseLog("400m")}
+    </div>`;
   }
 
   if(day===1){
-    return {
-      type:"Lower Strength",
-      exercises:[
-        {name:"Bulgarian Split Squat",sets:"4x8"},
-        {name:"Single Leg RDL",sets:"4x8"},
-        {name:"Skater Squat",sets:"3x8"},
-        {name:"Soleus Raise",sets:"3x15"}
-      ]
-    };
-  }
-
-  if(day===2){
-    return {
-      type:"VO2 Max",
-      exercises:[
-        {name:`400m Intervals`,sets:`6-8 reps @ ${split}s`}
-      ]
-    };
-  }
-
-  if(day===3){
-    return {
-      type:"Upper Strength",
-      exercises:[
-        {name:"Pull Ups",sets:"4xMax"},
-        {name:"Barbell Row",sets:"4x6"},
-        {name:"DB Bench",sets:"4x8"}
-      ]
-    };
+    html += `
+    <div class="card">
+      <h3>Lower Strength</h3>
+      Bulgarian Split Squat 4x8
+      ${exerciseLog("Bulgarian")}
+      Single Leg RDL 4x8
+      ${exerciseLog("RDL")}
+    </div>`;
   }
 
   if(day===4){
-    return {
-      type:"Tempo",
-      exercises:[
-        {name:"3x1km Tempo",sets:"2min float recovery"}
-      ]
-    };
-  }
-
-  if(day===5){
-    return {
-      type:"Conditioning",
-      exercises:[
-        {name:"400m Ski",sets:"3 rounds"},
-        {name:"20 Wall Balls",sets:"3 rounds"},
-        {name:"400m Row",sets:"3 rounds"}
-      ]
-    };
+    html += `
+    <div class="card">
+      <h3>Threshold</h3>
+      3 x 1km<br>
+      Rest 2min
+      ${exerciseLog("Threshold")}
+    </div>`;
   }
 
   if(day===6){
-    return {
-      type:"Long Run",
-      exercises:[
-        {name:"Zone 2 Run",sets:"70–90min"}
-      ]
-    };
+    html += `
+    <div class="card">
+      <h3>Long Z2</h3>
+      70-90min steady
+      ${exerciseLog("Z2")}
+    </div>`;
+  }
+
+  if(day===0){
+    html += `
+    <div class="card">
+      <h3>Recovery</h3>
+      Mobility 20-30min
+    </div>`;
+  }
+
+  document.getElementById("workoutContainer").innerHTML = html;
+
+  renderCalendar();
+  renderSelection();
+  renderChart();
+}
+
+function exerciseLog(name){
+  return `
+  <div class="exercise">
+    <input placeholder="Sets">
+    <input placeholder="Reps">
+    <input placeholder="Weight">
+    <input placeholder="RPE">
+    <div class="timer" id="timer-${name}">00:00</div>
+    <button onclick="startTimer('timer-${name}',60)">Start Timer</button>
+  </div>`;
+}
+
+function startTimer(id,seconds){
+  let time = seconds;
+  const el = document.getElementById(id);
+  const interval = setInterval(()=>{
+    let mins=Math.floor(time/60);
+    let secs=time%60;
+    el.innerText =
+      String(mins).padStart(2,"0")+":"+String(secs).padStart(2,"0");
+    time--;
+    if(time<0) clearInterval(interval);
+  },1000);
+}
+
+function changeDay(dir){
+  currentDate.setDate(currentDate.getDate()+dir);
+  if(currentDate<startDate) currentDate=new Date(startDate);
+  if(currentDate>endDate) currentDate=new Date(endDate);
+  renderWorkout();
+}
+
+function update2km(){
+  const val=document.getElementById("twoKmInput").value;
+  localStorage.setItem("twoKm",val);
+  renderWorkout();
+}
+
+function renderCalendar(){
+  const grid=document.getElementById("calendarGrid");
+  grid.innerHTML="";
+  const week=getWeek(currentDate);
+  for(let i=0;i<7;i++){
+    let box=document.createElement("div");
+    box.className="dayBox";
+    if(i===currentDate.getDay()) box.classList.add("today");
+    box.innerText=["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][i];
+    grid.appendChild(box);
   }
 }
 
-/* =============================
-   RENDER ENGINE
-============================= */
-
-function render(){
-
-  document.getElementById("dateDisplay").innerText =
-    formatDate(selectedDate);
-
-  const week = getWeekNumber(selectedDate);
-  const phase = getPhase(week);
-
-  document.getElementById("phaseBanner").innerHTML =
-    `<div class="phase">${phase} • Week ${week}</div>`;
-
-  const workout = getWorkoutForDate(selectedDate);
-
-  const container = document.getElementById("workoutContainer");
-  container.innerHTML = "";
-
-  workout.exercises.forEach(ex=>{
-    container.innerHTML += `
-      <div class="exercise-block">
-        <div class="exercise-title">${ex.name}</div>
-        <div>${ex.sets}</div>
-      </div>
-    `;
-  });
-
-  buildTrackingInputs(workout);
+function renderSelection(){
+  const twoKm=parseInt(localStorage.getItem("twoKm"))||BASE_2KM;
+  let score=50;
+  if(twoKm<460) score+=10;
+  if(twoKm<440) score+=10;
+  if(twoKm<420) score+=15;
+  document.getElementById("selectionScore").innerText=
+    score+"% Selection Probability";
 }
 
-/* =============================
-   TRACKING
-============================= */
-
-function buildTrackingInputs(workout){
-
-  const box = document.getElementById("exerciseInputs");
-  box.innerHTML = "";
-
-  workout.exercises.forEach(ex=>{
-    box.innerHTML += `
-      <div class="exercise-block">
-        <div class="exercise-title">${ex.name}</div>
-        <input placeholder="Weight Used">
-        <input placeholder="Reps Completed">
-        <input placeholder="RPE">
-      </div>
-    `;
+function renderChart(){
+  const ctx=document.getElementById("progressChart");
+  const twoKm=parseInt(localStorage.getItem("twoKm"))||BASE_2KM;
+  new Chart(ctx,{
+    type:"line",
+    data:{
+      labels:["Start","Current"],
+      datasets:[{
+        label:"2KM Time (sec)",
+        data:[470,twoKm]
+      }]
+    }
   });
 }
 
-function saveSession(){
-  alert("Session Saved ✔");
-}
-
-/* =============================
-   RECOVERY + SELECTION
-============================= */
-
-function updateRecovery(){
-
-  const sleep = parseFloat(document.getElementById("sleepInput").value)||7;
-  const fatigue = parseInt(document.getElementById("fatigueInput").value)||5;
-
-  const score = (sleep*10)-(fatigue*5);
-
-  document.getElementById("recoveryOutput").innerText =
-    "Recovery Score: "+score;
-
-  document.getElementById("selectionScore").innerText =
-    "Selection Probability: "+Math.min(95,50+score)+"%";
-}
-
-/* =============================
-   INIT
-============================= */
-
-render();
+renderWorkout();
