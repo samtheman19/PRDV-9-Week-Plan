@@ -1,164 +1,95 @@
-/* ===============================
-   GLOBAL RESET
-================================ */
-
-* {
-  margin:0;
-  padding:0;
-  box-sizing:border-box;
-  font-family: "Segoe UI", Roboto, sans-serif;
-}
-
 body {
-  background:#000;
-  color:#e5e7eb;
-  padding:24px;
-  max-width:720px;
-  margin:auto;
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+  background: #0b0f17;
+  color: white;
 }
 
-/* ===============================
-   NAVBAR
-================================ */
-
-.navbar {
-  position:fixed;
-  top:0;
-  left:0;
-  width:100%;
-  background:#0a0f14;
-  padding:14px 20px;
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  border-bottom:1px solid #111;
-  z-index:1000;
+.app {
+  padding: 20px;
+  max-width: 500px;
+  margin: auto;
 }
 
-.nav-title {
-  font-weight:700;
-  color:#10b981;
-  letter-spacing:1px;
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 25px;
 }
 
-.container {
-  margin-top:80px;
+.logo {
+  font-weight: 700;
+  font-size: 18px;
+  color: #1fd38a;
 }
 
-/* ===============================
-   STEEL CARD
-================================ */
+.elite-btn {
+  background: #1f2937;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 12px;
+  color: white;
+}
+
+.date-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+  font-weight: 600;
+}
+
+.date-nav button {
+  background: #1f2937;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 8px;
+  color: white;
+}
 
 .card {
-  background:#0f1419;
-  border:1px solid #1a222b;
-  border-radius:16px;
-  padding:20px;
-  margin-bottom:22px;
-  box-shadow:0 0 20px rgba(0,0,0,0.6);
-  transition:0.3s ease;
+  background: #121826;
+  padding: 20px;
+  border-radius: 18px;
+  box-shadow: 0 0 30px rgba(0,0,0,0.4);
 }
 
-.card:hover {
-  box-shadow:0 0 25px rgba(16,185,129,0.2);
+.phase {
+  font-size: 13px;
+  color: #9ca3af;
+  margin-bottom: 10px;
 }
 
-/* ===============================
-   INPUTS
-================================ */
-
-input {
-  width:100%;
-  padding:12px;
-  margin-bottom:12px;
-  border-radius:10px;
-  border:1px solid #1f2937;
-  background:#0b0f14;
-  color:#fff;
+.exercise {
+  margin-top: 20px;
 }
 
-input:focus {
-  outline:none;
-  border:1px solid #10b981;
-  box-shadow:0 0 8px rgba(16,185,129,0.4);
+.exercise h4 {
+  margin-bottom: 8px;
 }
 
-/* ===============================
-   BUTTONS
-================================ */
-
-button {
-  padding:10px 16px;
-  border-radius:10px;
-  border:none;
-  cursor:pointer;
-  background:#1f2937;
-  color:#fff;
-  transition:0.2s ease;
+.exercise input {
+  width: 100%;
+  margin-bottom: 8px;
+  padding: 10px;
+  border-radius: 10px;
+  border: 1px solid #1f2937;
+  background: #0b0f17;
+  color: white;
 }
 
-button:hover {
-  background:#10b981;
-  color:#000;
+.save-btn {
+  margin-top: 20px;
+  width: 100%;
+  padding: 12px;
+  border-radius: 14px;
+  border: none;
+  background: #1fd38a;
+  font-weight: 600;
 }
 
-button.primary {
-  background:#10b981;
-  color:#000;
-}
-
-/* ===============================
-   BATTLEFIELD DASHBOARD
-================================ */
-
-.battle-dashboard {
-  text-align:center;
-}
-
-.rank-glow {
-  font-size:20px;
-  font-weight:700;
-  color:#10b981;
-  animation:rankPulse 2s infinite;
-}
-
-@keyframes rankPulse {
-  0% { text-shadow:0 0 5px #10b981; }
-  50% { text-shadow:0 0 20px #10b981; }
-  100% { text-shadow:0 0 5px #10b981; }
-}
-
-/* ===============================
-   PROGRESS BAR
-================================ */
-
-.progress-container {
-  height:10px;
-  background:#1f2937;
-  border-radius:6px;
-  margin-top:10px;
-}
-
-.progress-bar {
-  height:10px;
-  background:#10b981;
-  border-radius:6px;
-  transition:width 0.6s ease;
-}
-
-/* ===============================
-   RESISTANCE MODE
-================================ */
-
-.resistance {
-  background:#05070a;
-}
-
-.resistance .card {
-  border:1px solid #10b981;
-  box-shadow:0 0 30px rgba(16,185,129,0.3);
-}
-
-.resistance .nav-title {
-  color:#ef4444;
+.complete {
+  margin-top: 12px;
+  background: #2563eb;
 }
