@@ -1,7 +1,3 @@
-/* ===============================
-   FIREBASE IMPORTS
-================================ */
-
 import { initializeApp } 
 from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
 
@@ -22,9 +18,7 @@ import {
   orderBy
 } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
 
-/* ===============================
-   FIREBASE CONFIG (LIVE)
-================================ */
+/* FIREBASE CONFIG */
 
 const firebaseConfig = {
   apiKey: "AIzaSyD7sHTLny_kAtTN_xXmkovFC-GSTtFMeNo",
@@ -41,67 +35,45 @@ const db = getFirestore(app);
 
 const BASE_2KM = 470;
 
-/* ===============================
-   AUTH SYSTEM
-================================ */
+/* AUTH */
 
 window.register = async () => {
   try {
-    await createUserWithEmailAndPassword(
-      auth,
-      email.value,
-      password.value
-    );
-    alert("Account created.");
-  } catch (e) {
-    alert(e.message);
-  }
+    await createUserWithEmailAndPassword(auth,email.value,password.value);
+  } catch (e) { alert(e.message); }
 };
 
 window.login = async () => {
   try {
-    await signInWithEmailAndPassword(
-      auth,
-      email.value,
-      password.value
-    );
-    alert("Login successful.");
-  } catch (e) {
-    alert(e.message);
-  }
+    await signInWithEmailAndPassword(auth,email.value,password.value);
+  } catch (e) { alert(e.message); }
 };
 
 window.logout = async () => {
   await signOut(auth);
 };
 
-/* ===============================
-   AUTH STATE LISTENER
-================================ */
-
 onAuthStateChanged(auth, (user) => {
-
   const status = document.getElementById("userStatus");
   if (!status) return;
 
-  if (user) {
-    status.innerHTML = `
-      <span style="color:#10b981;font-weight:600;">
-        Logged in as ${user.email}
-      </span>
-    `;
-  } else {
-    status.innerHTML = `
-      <span style="color:#ef4444;">
-        Not logged in
-      </span>
-    `;
-  }
+  status.innerHTML = user
+    ? `<span style="color:#10b981;">Logged in as ${user.email}</span>`
+    : `<span style="color:#ef4444;">Not logged in</span>`;
 });
 
-/* ===============================
-   XP + RANK SYSTEM
-================================ */
+/* UTILITIES */
+
+function parseTimeToSeconds(timeStr) {
+  if (!timeStr) return BASE_2KM;
+  if (timeStr.includes(":")) {
+    const parts = timeStr.split(":");
+    return (parseInt(parts[0]) * 60) + parseInt(parts[1]);
+  }
+  return parseInt(timeStr);
+}
+
+/* XP + RANK */
 
 function calculateXP(push, pull, twoKm) {
   return (push * 2) + (pull * 4) + Math.max(0, 500 - twoKm);
@@ -116,29 +88,28 @@ function getRank(xp) {
   return "Tier 1";
 }
 
-/* ===============================
-   RECOVERY ENGINE
-================================ */
+/* RECOVERY ENGINE */
 
 function recoveryScore(push, pull, fatigue, sleep) {
 
-  const sleepBonus =
-    sleep >= 8 ? 15 :
-    sleep >= 7 ? 10 :
-    sleep >= 6 ? 5 : -15;
+  const strengthScore = (push * 1.5) + (pull * 2.5);
+  const fatiguePenalty = fatigue * 4;
 
-  return (push * 2) + (pull * 3) - (fatigue * 3) + sleepBonus;
+  const sleepBonus =
+    sleep >= 8 ? 20 :
+    sleep >= 7 ? 15 :
+    sleep >= 6 ? 5 : -20;
+
+  return strengthScore - fatiguePenalty + sleepBonus + 40;
 }
 
 function recoveryState(score) {
-  if (score >= 100) return "GREEN";
-  if (score >= 60) return "AMBER";
+  if (score >= 110) return "GREEN";
+  if (score >= 75) return "AMBER";
   return "RED";
 }
 
-/* ===============================
-   MISSION ENGINE
-================================ */
+/* MISSION ENGINE */
 
 function missionGenerator(twoKm, state) {
 
@@ -153,9 +124,7 @@ function missionGenerator(twoKm, state) {
   return "Recovery Run + Mobility 30min";
 }
 
-/* ===============================
-   SELECTION PROBABILITY
-================================ */
+/* SELECTION PROBABILITY */
 
 function selectionProbability(push, pull, twoKm) {
 
@@ -169,9 +138,7 @@ function selectionProbability(push, pull, twoKm) {
   return Math.min(prob, 95);
 }
 
-/* ===============================
-   DASHBOARD RENDER
-================================ */
+/* DASHBOARD RENDER */
 
 function renderDashboard(data) {
 
@@ -186,22 +153,24 @@ function renderDashboard(data) {
       <p><strong>Recovery:</strong> ${data.state}</p>
       <p><strong>Mission:</strong> ${data.workout}</p>
       <p><strong>Selection Probability:</strong> ${data.selection}%</p>
-
       <div style="height:10px;background:#1f2937;border-radius:6px;margin-top:10px;">
-        <div style="
-          height:10px;
-          width:${data.selection}%;
-          background:#10b981;
-          border-radius:6px;">
-        </div>
+        <div style="height:10px;width:${data.selection}%;background:#10b981;border-radius:6px;"></div>
       </div>
     </div>
   `;
+
+  const recEl = document.getElementById("recoveryInsight");
+  if (recEl) {
+    recEl.innerHTML =
+      data.state === "GREEN"
+        ? `<div class="readiness green">GREEN — Optimal training state</div>`
+        : data.state === "AMBER"
+        ? `<div class="readiness amber">AMBER — Manage load carefully</div>`
+        : `<div class="readiness red">RED — Recovery focus required</div>`;
+  }
 }
 
-/* ===============================
-   SAVE PERFORMANCE
-================================ */
+/* SAVE PERFORMANCE */
 
 window.savePerformance = async function () {
 
@@ -209,7 +178,7 @@ window.savePerformance = async function () {
   const pull = parseInt(manualPullups.value) || 0;
   const fatigue = parseInt(manualFatigue.value) || 5;
   const sleep = parseFloat(sleepHours.value) || 7;
-  const twoKm = parseInt(twoKmTime.value) || BASE_2KM;
+  const twoKm = parseTimeToSeconds(twoKmTime.value);
 
   localStorage.setItem("pushups", push);
   localStorage.setItem("pullups", pull);
@@ -222,45 +191,11 @@ window.savePerformance = async function () {
   const workout = missionGenerator(twoKm, state);
   const selection = selectionProbability(push, pull, twoKm);
 
-  /* 🔥 RECOVERY PANEL UPDATE */
-  const recoveryDiv = document.getElementById("recoveryInsight");
-  if (recoveryDiv) {
-    recoveryDiv.innerHTML = `
-      <div style="
-        padding:12px;
-        border-radius:8px;
-        font-weight:600;
-        background:${
-          state==="GREEN"?"rgba(16,185,129,0.15)":
-          state==="AMBER"?"rgba(245,158,11,0.15)":
-          "rgba(239,68,68,0.15)"
-        };
-        color:${
-          state==="GREEN"?"#10b981":
-          state==="AMBER"?"#f59e0b":
-          "#ef4444"
-        };
-      ">
-        ${state} — ${
-          state==="GREEN"?"Full intensity permitted":
-          state==="AMBER"?"Moderate load advised":
-          "Recovery focus required"
-        }
-      </div>
-    `;
-  }
-
   const user = auth.currentUser;
 
   if (user) {
     await addDoc(collection(db, "users", user.uid, "sessions"), {
-      push,
-      pull,
-      fatigue,
-      sleep,
-      twoKm,
-      xp,
-      rank,
+      push, pull, fatigue, sleep, twoKm, xp, rank,
       timestamp: Date.now()
     });
   }
@@ -268,18 +203,16 @@ window.savePerformance = async function () {
   renderDashboard({ xp, rank, state, workout, selection });
 };
 
-/* ===============================
-   ANALYTICS (VO2 TREND)
-================================ */
+/* ANALYTICS */
 
-window.loadAnalytics = async function(){
+window.loadAnalytics = async function () {
 
   const user = auth.currentUser;
-  if(!user) return alert("Login first.");
+  if (!user) return alert("Login first.");
 
   const q = query(
-    collection(db,"users",user.uid,"sessions"),
-    orderBy("timestamp","asc")
+    collection(db, "users", user.uid, "sessions"),
+    orderBy("timestamp", "asc")
   );
 
   const snapshot = await getDocs(q);
@@ -288,32 +221,28 @@ window.loadAnalytics = async function(){
   let vo2 = [];
   let count = 1;
 
-  snapshot.forEach(doc=>{
+  snapshot.forEach(doc => {
     const data = doc.data();
-    labels.push("S"+count);
+    labels.push("S" + count);
     vo2.push(500 - data.twoKm);
     count++;
   });
 
-  new Chart(
-    document.getElementById("vo2Trend"),
-    {
-      type:"line",
-      data:{
-        labels,
-        datasets:[{
-          label:"VO2 Score",
-          data:vo2,
-          borderColor:"#10b981"
-        }]
-      }
+  new Chart(document.getElementById("vo2Trend"), {
+    type: "line",
+    data: {
+      labels,
+      datasets: [{
+        label: "VO2 Score",
+        data: vo2,
+        borderColor: "#10b981",
+        backgroundColor: "rgba(16,185,129,0.2)"
+      }]
     }
-  );
+  });
 };
 
-/* ===============================
-   AUTO INIT
-================================ */
+/* INIT */
 
 window.onload = function () {
 
