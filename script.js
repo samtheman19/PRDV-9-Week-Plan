@@ -18,7 +18,9 @@ import {
   orderBy
 } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
 
-/* FIREBASE CONFIG */
+/* ===============================
+   FIREBASE CONFIG
+================================ */
 
 const firebaseConfig = {
   apiKey: "AIzaSyD7sHTLny_kAtTN_xXmkovFC-GSTtFMeNo",
@@ -35,7 +37,9 @@ const db = getFirestore(app);
 
 const BASE_2KM = 470;
 
-/* AUTH */
+/* ===============================
+   AUTH
+================================ */
 
 window.register = async () => {
   try {
@@ -49,9 +53,7 @@ window.login = async () => {
   } catch (e) { alert(e.message); }
 };
 
-window.logout = async () => {
-  await signOut(auth);
-};
+window.logout = async () => { await signOut(auth); };
 
 onAuthStateChanged(auth, (user) => {
   const status = document.getElementById("userStatus");
@@ -62,7 +64,9 @@ onAuthStateChanged(auth, (user) => {
     : `<span style="color:#ef4444;">Not logged in</span>`;
 });
 
-/* UTILITIES */
+/* ===============================
+   UTILITIES
+================================ */
 
 function parseTimeToSeconds(timeStr) {
   if (!timeStr) return BASE_2KM;
@@ -73,7 +77,16 @@ function parseTimeToSeconds(timeStr) {
   return parseInt(timeStr);
 }
 
-/* XP + RANK */
+function getWeekNumber() {
+  const start = new Date("2026-01-01");
+  const now = new Date();
+  const diff = Math.floor((now - start) / (1000 * 60 * 60 * 24));
+  return Math.min(10, Math.max(1, Math.floor(diff / 7) + 1));
+}
+
+/* ===============================
+   XP + RANK
+================================ */
 
 function calculateXP(push, pull, twoKm) {
   return (push * 2) + (pull * 4) + Math.max(0, 500 - twoKm);
@@ -88,7 +101,9 @@ function getRank(xp) {
   return "Tier 1";
 }
 
-/* RECOVERY ENGINE */
+/* ===============================
+   RECOVERY ENGINE
+================================ */
 
 function recoveryScore(push, pull, fatigue, sleep) {
 
@@ -109,22 +124,45 @@ function recoveryState(score) {
   return "RED";
 }
 
-/* MISSION ENGINE */
+/* ===============================
+   INJURY RISK
+================================ */
 
-function missionGenerator(twoKm, state) {
-
-  const pace = twoKm / 5;
-
-  if (state === "GREEN")
-    return `8 x 400m @ ${(pace - 2).toFixed(1)}s`;
-
-  if (state === "AMBER")
-    return `6 x 400m @ ${pace.toFixed(1)}s`;
-
-  return "Recovery Run + Mobility 30min";
+function injuryRisk(fatigue, sleep) {
+  if (fatigue >= 8 && sleep <= 6) return "HIGH";
+  if (fatigue >= 6) return "MODERATE";
+  return "LOW";
 }
 
-/* SELECTION PROBABILITY */
+/* ===============================
+   10 WEEK PROGRAM ENGINE
+================================ */
+
+function generateDailyWorkout(twoKm, state) {
+
+  const week = getWeekNumber();
+  const day = new Date().getDay(); // 0-6
+  const pace = twoKm / 5;
+
+  const program = [
+    `Intervals: ${6 + week} x 400m @ ${(pace - 2).toFixed(1)}s`,
+    `Tempo: 3km steady @ ${(pace + 5).toFixed(1)}s per 400m`,
+    "Upper Strength: Push/Pull/Core circuit",
+    `Speed: 8 x 200m fast`,
+    "Lower Strength + Plyometrics",
+    "Long aerobic run 5–7km",
+    "Active recovery + mobility"
+  ];
+
+  if (state === "RED") return "Recovery Run 20–30min + Mobility + Stretch";
+  if (state === "AMBER") return program[day] + " (Reduced volume -20%)";
+
+  return program[day];
+}
+
+/* ===============================
+   SELECTION PROBABILITY
+================================ */
 
 function selectionProbability(push, pull, twoKm) {
 
@@ -138,7 +176,26 @@ function selectionProbability(push, pull, twoKm) {
   return Math.min(prob, 95);
 }
 
-/* DASHBOARD RENDER */
+/* ===============================
+   STREAK TRACKER
+================================ */
+
+function updateStreak() {
+  const today = new Date().toDateString();
+  const last = localStorage.getItem("lastWorkout");
+
+  if (last !== today) {
+    let streak = parseInt(localStorage.getItem("streak")) || 0;
+    streak++;
+    localStorage.setItem("streak", streak);
+    localStorage.setItem("lastWorkout", today);
+  }
+  return parseInt(localStorage.getItem("streak")) || 1;
+}
+
+/* ===============================
+   DASHBOARD
+================================ */
 
 function renderDashboard(data) {
 
@@ -147,15 +204,15 @@ function renderDashboard(data) {
 
   container.innerHTML = `
     <div class="card">
-      <h2>⚔ Elite Battlefield Dashboard</h2>
+      <h2>🔥 TODAY'S MISSION</h2>
+      <p style="font-size:18px;font-weight:600;">${data.workout}</p>
+      <hr>
       <p><strong>Rank:</strong> ${data.rank}</p>
       <p><strong>XP:</strong> ${data.xp}</p>
       <p><strong>Recovery:</strong> ${data.state}</p>
-      <p><strong>Mission:</strong> ${data.workout}</p>
+      <p><strong>Injury Risk:</strong> ${data.risk}</p>
       <p><strong>Selection Probability:</strong> ${data.selection}%</p>
-      <div style="height:10px;background:#1f2937;border-radius:6px;margin-top:10px;">
-        <div style="height:10px;width:${data.selection}%;background:#10b981;border-radius:6px;"></div>
-      </div>
+      <p><strong>Training Streak:</strong> ${data.streak} days</p>
     </div>
   `;
 
@@ -163,14 +220,16 @@ function renderDashboard(data) {
   if (recEl) {
     recEl.innerHTML =
       data.state === "GREEN"
-        ? `<div class="readiness green">GREEN — Optimal training state</div>`
+        ? `<div class="readiness green">GREEN — Full intensity allowed</div>`
         : data.state === "AMBER"
         ? `<div class="readiness amber">AMBER — Manage load carefully</div>`
         : `<div class="readiness red">RED — Recovery focus required</div>`;
   }
 }
 
-/* SAVE PERFORMANCE */
+/* ===============================
+   SAVE PERFORMANCE
+================================ */
 
 window.savePerformance = async function () {
 
@@ -188,61 +247,27 @@ window.savePerformance = async function () {
   const rank = getRank(xp);
   const recScore = recoveryScore(push, pull, fatigue, sleep);
   const state = recoveryState(recScore);
-  const workout = missionGenerator(twoKm, state);
+  const workout = generateDailyWorkout(twoKm, state);
   const selection = selectionProbability(push, pull, twoKm);
+  const risk = injuryRisk(fatigue, sleep);
+  const streak = updateStreak();
 
   const user = auth.currentUser;
 
   if (user) {
     await addDoc(collection(db, "users", user.uid, "sessions"), {
-      push, pull, fatigue, sleep, twoKm, xp, rank,
+      push, pull, fatigue, sleep, twoKm,
+      xp, rank, state, workout, selection,
       timestamp: Date.now()
     });
   }
 
-  renderDashboard({ xp, rank, state, workout, selection });
+  renderDashboard({ xp, rank, state, workout, selection, risk, streak });
 };
 
-/* ANALYTICS */
-
-window.loadAnalytics = async function () {
-
-  const user = auth.currentUser;
-  if (!user) return alert("Login first.");
-
-  const q = query(
-    collection(db, "users", user.uid, "sessions"),
-    orderBy("timestamp", "asc")
-  );
-
-  const snapshot = await getDocs(q);
-
-  let labels = [];
-  let vo2 = [];
-  let count = 1;
-
-  snapshot.forEach(doc => {
-    const data = doc.data();
-    labels.push("S" + count);
-    vo2.push(500 - data.twoKm);
-    count++;
-  });
-
-  new Chart(document.getElementById("vo2Trend"), {
-    type: "line",
-    data: {
-      labels,
-      datasets: [{
-        label: "VO2 Score",
-        data: vo2,
-        borderColor: "#10b981",
-        backgroundColor: "rgba(16,185,129,0.2)"
-      }]
-    }
-  });
-};
-
-/* INIT */
+/* ===============================
+   INIT
+================================ */
 
 window.onload = function () {
 
@@ -253,8 +278,17 @@ window.onload = function () {
   const xp = calculateXP(push, pull, twoKm);
   const rank = getRank(xp);
   const state = "GREEN";
-  const workout = missionGenerator(twoKm, state);
+  const workout = generateDailyWorkout(twoKm, state);
   const selection = selectionProbability(push, pull, twoKm);
+  const streak = parseInt(localStorage.getItem("streak")) || 1;
 
-  renderDashboard({ xp, rank, state, workout, selection });
+  renderDashboard({
+    xp,
+    rank,
+    state,
+    workout,
+    selection,
+    risk: "LOW",
+    streak
+  });
 };
