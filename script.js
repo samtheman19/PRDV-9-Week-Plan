@@ -1,147 +1,111 @@
 const TARGET = new Date("2026-04-27");
-let seconds = 0;
-let timerInt = null;
+let loadHistory = JSON.parse(localStorage.getItem("loadHistory")) || [];
 
-let perf = {
-  push: 30,
-  pull: 8,
-  twoKm: 470,
-  sleep: 7,
-  fatigue: 5
+const program = {
+  monday: ["Bulgarian Split Squat","Single Leg RDL","Pull Ups"],
+  tuesday: ["6 x 400m"],
+  wednesday: ["DB Bench","Barbell Row","Core Circuit"],
+  thursday: ["Tempo 3 x 1km"],
+  friday: ["Conditioning Circuit"],
+  saturday: ["Long Zone 2"],
+  sunday: ["Rest + Mobility"]
 };
 
-let loadHistory = JSON.parse(localStorage.getItem("loadHistory")) || [];
-let twoKmHistory = JSON.parse(localStorage.getItem("twoKmHistory")) || [];
-
-/* COUNTDOWN */
-function updateCountdown() {
-  const diff = TARGET - new Date();
-  const days = Math.ceil(diff / (1000*60*60*24));
-  countdown.innerText = days + " days to PRDV";
+function getTodayKey(){
+  const d = new Date().getDay();
+  return ["sunday","monday","tuesday","wednesday","thursday","friday","saturday"][d];
 }
 
-/* TIMER */
-function startTimer(){
-  if(!timerInt)
-    timerInt=setInterval(()=>{
-      seconds++;
-      updateTimer();
-    },1000);
+function renderWorkout(){
+  const dayKey = getTodayKey();
+  const exercises = program[dayKey];
+  const container = document.getElementById("todayWorkout");
+
+  container.innerHTML = `
+    <div class="card">
+      <div class="metric-title">Today – ${dayKey.toUpperCase()}</div>
+      ${exercises.map(e=>`<div>${e}</div>`).join("")}
+    </div>
+  `;
+
+  renderExerciseInputs(exercises);
 }
 
-function pauseTimer(){
-  clearInterval(timerInt);
-  timerInt=null;
+function renderExerciseInputs(exercises){
+  const container = document.getElementById("exerciseInputs");
+  container.innerHTML = "";
+
+  exercises.forEach(e=>{
+    container.innerHTML += `
+      <div class="exercise-row">
+        <span>${e}</span>
+        <input placeholder="Load">
+        <input placeholder="Reps">
+      </div>
+    `;
+  });
 }
 
-function endSession(){
-  pauseTimer();
-  recordLoad();
-  seconds=0;
-  updateTimer();
-}
+function saveSession(){
+  const rows = document.querySelectorAll(".exercise-row");
+  let totalLoad = 0;
 
-function updateTimer(){
-  const h=String(Math.floor(seconds/3600)).padStart(2,'0');
-  const m=String(Math.floor(seconds%3600/60)).padStart(2,'0');
-  const s=String(seconds%60).padStart(2,'0');
-  timer.innerText=`${h}:${m}:${s}`;
-}
+  rows.forEach(r=>{
+    const inputs = r.querySelectorAll("input");
+    const load = parseFloat(inputs[0].value)||0;
+    const reps = parseFloat(inputs[1].value)||0;
+    totalLoad += load * reps;
+  });
 
-/* UPDATE PERFORMANCE */
-function updatePerformance(){
-  perf.push=parseInt(pushInput.value)||perf.push;
-  perf.pull=parseInt(pullInput.value)||perf.pull;
-  perf.twoKm=parseInt(twoKmInput.value)||perf.twoKm;
-  perf.sleep=parseFloat(sleepInput.value)||perf.sleep;
-  perf.fatigue=parseInt(fatigueInput.value)||perf.fatigue;
-
-  twoKmHistory.push(perf.twoKm);
-  localStorage.setItem("twoKmHistory",JSON.stringify(twoKmHistory));
-
-  render();
-}
-
-/* SRI */
-function calculateSRI(){
-  let score=0;
-  score+=Math.min((perf.push/60)*25,25);
-  score+=Math.min((perf.pull/15)*20,20);
-  score+=Math.max(0,((500-perf.twoKm)/100)*25);
-  score+=Math.min((perf.sleep/8)*10,10);
-  score+=Math.max(0,((10-perf.fatigue)/10)*20);
-  return Math.round(Math.min(score,100));
-}
-
-/* LOAD MODEL */
-function recordLoad(){
-  const load=seconds/60 + perf.fatigue*4;
-  loadHistory.push(load);
+  loadHistory.push(totalLoad);
   if(loadHistory.length>28) loadHistory.shift();
+
   localStorage.setItem("loadHistory",JSON.stringify(loadHistory));
+
+  updateMetrics();
 }
 
-function acuteLoad(){
-  return loadHistory.slice(-7).reduce((a,b)=>a+b,0);
+function calculateSRI(){
+  if(loadHistory.length<7) return 50;
+  const acute = loadHistory.slice(-7).reduce((a,b)=>a+b,0);
+  const chronic = loadHistory.reduce((a,b)=>a+b,0)/loadHistory.length;
+  const ratio = acute/(chronic||1);
+  return Math.round(100 - Math.abs(1-ratio)*50);
 }
 
-function chronicLoad(){
-  return loadHistory.reduce((a,b)=>a+b,0)/loadHistory.length||0;
-}
+function updateMetrics(){
+  const sri = calculateSRI();
+  sriValue.innerText = sri;
+  sriBar.style.width = sri+"%";
 
-function loadRatio(){
-  return acuteLoad()/(chronicLoad()||1);
-}
+  sriStatus.innerText =
+    sri>75?"GREEN":
+    sri>55?"AMBER":
+    "RED";
 
-/* AI */
-function generateAdvice(){
-  const sri=calculateSRI();
-  const ratio=loadRatio();
+  const acute = loadHistory.slice(-7).reduce((a,b)=>a+b,0);
+  const chronic = loadHistory.reduce((a,b)=>a+b,0)/loadHistory.length||1;
+  const ratio = acute/chronic;
 
-  if(ratio>1.5) return "⚠ Deload recommended – overload detected.";
-  if(perf.twoKm>460) return "Increase VO2 + threshold work.";
-  if(perf.push<40) return "Increase push-up density.";
-  if(perf.pull<10) return "Add weighted pull-ups.";
-  if(sri>80) return "Maintain intensity – competitive.";
-  return "Build aerobic base.";
-}
+  loadValue.innerText = ratio.toFixed(2);
+  loadBar.style.width = Math.min(ratio*50,100)+"%";
 
-/* RENDER */
-function render(){
-
-  updateCountdown();
-
-  const sri=calculateSRI();
-  sriValue.innerText=sri;
-  sriBar.style.width=sri+"%";
-  sriStatus.innerText=
-    sri>75?"GREEN – Competitive":
-    sri>55?"AMBER – Building":
-    "RED – Below Standard";
-
-  const ratio=loadRatio();
-  loadValue.innerText=ratio.toFixed(2);
-  loadBar.style.width=Math.min(ratio*50,100)+"%";
-
-  loadWarning.innerText=
-    ratio>1.5?"High overload":
+  loadWarning.innerText =
+    ratio>1.5?"Overload":
     ratio<0.8?"Undertraining":
     "Balanced";
 
-  aiAdvice.innerText=generateAdvice();
-
-  renderCharts();
+  renderChart();
 }
 
-/* CHARTS */
-let loadChart,twoKmChart;
+let chart;
 
-function renderCharts(){
+function renderChart(){
+  const ctx = document.getElementById("loadChart");
 
-  if(loadChart) loadChart.destroy();
-  if(twoKmChart) twoKmChart.destroy();
+  if(chart) chart.destroy();
 
-  loadChart=new Chart(loadChartCanvas,{
+  chart = new Chart(ctx,{
     type:'line',
     data:{
       labels:loadHistory.map((_,i)=>i+1),
@@ -152,19 +116,14 @@ function renderCharts(){
       }]
     }
   });
+}
 
-  twoKmChart=new Chart(twoKmChartCanvas,{
-    type:'line',
-    data:{
-      labels:twoKmHistory.map((_,i)=>i+1),
-      datasets:[{
-        data:twoKmHistory,
-        borderColor:'#3b82f6',
-        tension:0.3
-      }]
-    }
-  });
+function updateCountdown(){
+  const diff = TARGET - new Date();
+  const days = Math.ceil(diff/(1000*60*60*24));
+  countdown.innerText = days+" days to PRDV";
 }
 
 updateCountdown();
-render();
+renderWorkout();
+updateMetrics();
