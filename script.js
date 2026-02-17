@@ -1,8 +1,14 @@
 const TARGET_DATE = new Date("2026-04-27");
 let offsetDay = 0;
+
 let loadHistory = JSON.parse(localStorage.getItem("loadHistory")) || [];
+let streak = parseInt(localStorage.getItem("streak")) || 0;
 
 const BASE_2KM = 470;
+
+/* ===============================
+   PROGRAM ENGINE
+================================ */
 
 function getProgramStart(){
   if(!localStorage.getItem("programStart")){
@@ -28,6 +34,10 @@ function get400Split(twoKm){
   return (twoKm/5).toFixed(1);
 }
 
+/* ===============================
+   WORKOUT GENERATOR
+================================ */
+
 function generateWorkout(date){
 
   const week = getCurrentWeek();
@@ -36,7 +46,7 @@ function generateWorkout(date){
   const twoKm = parseInt(localStorage.getItem("twoKm")) || BASE_2KM;
   const split = get400Split(twoKm);
 
-  if(day===0) return ["Rest + Mobility"];
+  if(day===0) return ["Rest + Mobility 20min"];
 
   if(day===1) return [
     "Bulgarian Split Squat 4x8",
@@ -46,7 +56,7 @@ function generateWorkout(date){
 
   if(day===2){
     const reps = week<=3?6:week<=6?7:8;
-    return [`${reps} x 400m @ ${split}s`, "90s rest"];
+    return [`${reps} x 400m @ ${split}s`, "90 sec rest"];
   }
 
   if(day===3) return [
@@ -65,48 +75,9 @@ function generateWorkout(date){
   }
 }
 
-function renderWorkout(){
-  const today = new Date();
-  today.setDate(today.getDate()+offsetDay);
-
-  const week = getCurrentWeek();
-  const phase = getPhase(week);
-  const exercises = generateWorkout(today);
-
-  document.getElementById("dayLabel").innerText =
-    today.toDateString() + ` (Week ${week} - ${phase})`;
-
-  const container = document.getElementById("todayWorkout");
-
-  container.innerHTML = `
-    <div class="card">
-      <div class="metric-title">Today's Mission</div>
-      ${exercises.map(e=>`<div>${e}</div>`).join("")}
-    </div>
-  `;
-
-  renderInputs(exercises);
-}
-
-function renderInputs(exercises){
-  const container = document.getElementById("exerciseInputs");
-  container.innerHTML = "";
-
-  exercises.forEach(e=>{
-    container.innerHTML += `
-      <div class="exercise-row">
-        <span>${e}</span>
-        <input placeholder="Load">
-        <input placeholder="Reps">
-      </div>
-    `;
-  });
-}
-
-function changeDay(val){
-  offsetDay += val;
-  renderWorkout();
-}
+/* ===============================
+   LOAD CALCULATION
+================================ */
 
 function calculateLoad(){
   const rows = document.querySelectorAll(".exercise-row");
@@ -120,28 +91,132 @@ function calculateLoad(){
   return total;
 }
 
-function saveSession(){
-  const load = calculateLoad();
-  loadHistory.push(load);
-  if(loadHistory.length>28) loadHistory.shift();
-  localStorage.setItem("loadHistory",JSON.stringify(loadHistory));
-  updateMetrics();
+/* ===============================
+   ADVANCED METRICS
+================================ */
+
+function getAcuteLoad(){
+  return loadHistory.slice(-7).reduce((a,b)=>a+b,0);
+}
+
+function getChronicLoad(){
+  if(loadHistory.length===0) return 1;
+  return loadHistory.reduce((a,b)=>a+b,0)/loadHistory.length;
+}
+
+function getLoadRatio(){
+  return getAcuteLoad()/(getChronicLoad()||1);
 }
 
 function calculateSRI(){
-  if(loadHistory.length<7) return 70;
-  const acute = loadHistory.slice(-7).reduce((a,b)=>a+b,0);
-  const chronic = loadHistory.reduce((a,b)=>a+b,0)/loadHistory.length;
-  const ratio = acute/(chronic||1);
+  const ratio = getLoadRatio();
   return Math.round(100 - Math.abs(1-ratio)*40);
 }
 
+/* ===============================
+   ADAPTIVE VOLUME ENGINE
+================================ */
+
+function volumeAdjustment(){
+  const ratio = getLoadRatio();
+
+  if(ratio > 1.6) return "⚠ DELoad Recommended (-20%)";
+  if(ratio > 1.3) return "Reduce Volume (-10%)";
+  if(ratio < 0.8) return "Increase Volume (+10%)";
+  return "Maintain Volume";
+}
+
+/* ===============================
+   2KM PROJECTION ENGINE
+================================ */
+
+function projected2KM(){
+
+  const twoKm = parseInt(localStorage.getItem("twoKm")) || BASE_2KM;
+  const sri = calculateSRI();
+  const ratio = getLoadRatio();
+
+  let improvement = 0;
+
+  if(sri > 75) improvement += 5;
+  if(ratio >= 0.9 && ratio <= 1.3) improvement += 5;
+  if(streak >= 5) improvement += 5;
+
+  return Math.max(twoKm - improvement, 410);
+}
+
+/* ===============================
+   SELECTION PROBABILITY v2
+================================ */
+
 function calculateSelection(){
-  const twoKm = parseInt(localStorage.getItem("twoKm"))||BASE_2KM;
+
+  const twoKm = projected2KM();
+  const ratio = getLoadRatio();
+
   let prob = 40;
-  if(twoKm<450) prob+=20;
-  if(twoKm<430) prob+=10;
-  return Math.min(prob,95);
+
+  if(twoKm < 450) prob += 20;
+  if(twoKm < 430) prob += 10;
+  if(ratio >= 0.9 && ratio <= 1.3) prob += 10;
+  if(streak >= 7) prob += 10;
+
+  return Math.min(prob, 98);
+}
+
+/* ===============================
+   SESSION SAVE
+================================ */
+
+function saveSession(){
+
+  const load = calculateLoad();
+  loadHistory.push(load);
+  if(loadHistory.length > 28) loadHistory.shift();
+  localStorage.setItem("loadHistory", JSON.stringify(loadHistory));
+
+  streak++;
+  localStorage.setItem("streak", streak);
+
+  updateMetrics();
+}
+
+/* ===============================
+   UI RENDER
+================================ */
+
+function renderWorkout(){
+  const today = new Date();
+  today.setDate(today.getDate()+offsetDay);
+
+  const week = getCurrentWeek();
+  const phase = getPhase(week);
+  const exercises = generateWorkout(today);
+
+  dayLabel.innerText =
+    today.toDateString() + ` (Week ${week} - ${phase})`;
+
+  todayWorkout.innerHTML = `
+    <div class="card">
+      <div class="metric-title">Today's Mission</div>
+      ${exercises.map(e=>`<div>${e}</div>`).join("")}
+    </div>
+  `;
+
+  renderInputs(exercises);
+}
+
+function renderInputs(exercises){
+  exerciseInputs.innerHTML="";
+  exercises.forEach(e=>{
+    exerciseInputs.innerHTML+=`
+      <div class="exercise-row">
+        <span>${e}</span>
+        <input placeholder="Load">
+        <input placeholder="Reps">
+      </div>
+    `;
+  });
 }
 
 function updateMetrics(){
@@ -149,43 +224,44 @@ function updateMetrics(){
   const sri = calculateSRI();
   sriValue.innerText = sri;
   sriBar.style.width = sri+"%";
-  sriStatus.innerText =
-    sri>75?"GREEN":
-    sri>55?"AMBER":"RED";
+  sriStatus.innerText = sri>75?"GREEN":
+                        sri>55?"AMBER":"RED";
 
   const selection = calculateSelection();
   selectionValue.innerText = selection+"%";
   selectionBar.style.width = selection+"%";
 
-  const acute = loadHistory.slice(-7).reduce((a,b)=>a+b,0);
-  const chronic = loadHistory.reduce((a,b)=>a+b,0)/loadHistory.length||1;
-  const ratio = acute/chronic;
-
+  const ratio = getLoadRatio();
   loadValue.innerText = ratio.toFixed(2);
   loadBar.style.width = Math.min(ratio*50,100)+"%";
-  loadWarning.innerText =
-    ratio>1.5?"Overload":
-    ratio<0.8?"Underload":"Balanced";
 
-  renderChart();
+  loadWarning.innerText = volumeAdjustment();
+
+  renderIntelligencePanel();
 }
 
-let chart;
+function renderIntelligencePanel(){
 
-function renderChart(){
-  const ctx = document.getElementById("loadChart");
-  if(chart) chart.destroy();
-  chart = new Chart(ctx,{
-    type:'line',
-    data:{
-      labels:loadHistory.map((_,i)=>i+1),
-      datasets:[{
-        data:loadHistory,
-        borderColor:'#1fd38a',
-        tension:0.3
-      }]
-    }
-  });
+  const projection = projected2KM();
+  const adjustment = volumeAdjustment();
+
+  todayWorkout.innerHTML += `
+    <div class="card">
+      <div class="metric-title">Warfighter Intelligence</div>
+      <div>Projected 2KM: ${projection}s</div>
+      <div>Streak: ${streak} days</div>
+      <div>Volume Adjustment: ${adjustment}</div>
+    </div>
+  `;
+}
+
+/* ===============================
+   NAVIGATION
+================================ */
+
+function changeDay(val){
+  offsetDay += val;
+  renderWorkout();
 }
 
 function toggleOperatorMode(){
@@ -197,6 +273,10 @@ function updateCountdown(){
   const days = Math.ceil(diff/(1000*60*60*24));
   countdown.innerText = days + " days to Selection";
 }
+
+/* ===============================
+   INIT
+================================ */
 
 updateCountdown();
 renderWorkout();
