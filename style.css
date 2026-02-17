@@ -1,109 +1,79 @@
 body {
-  margin: 0;
-  background: #0b0f17;
-  color: white;
-  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-  transition: 0.3s ease;
-}
-
-body.operator {
-  background: #000;
+  margin:0;
+  background:#0a0f18;
+  color:white;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto;
 }
 
 .app {
-  max-width: 520px;
-  margin: auto;
-  padding: 20px;
+  max-width:720px;
+  margin:auto;
+  padding:20px;
 }
 
-.header {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 10px;
+header {
+  text-align:center;
+  margin-bottom:20px;
 }
 
-.logo {
-  font-weight: 700;
-  color: #1fd38a;
+#dateDisplay {
+  font-weight:600;
+  margin-top:6px;
 }
 
-.countdown {
-  text-align: center;
-  margin-bottom: 15px;
-  opacity: 0.7;
-}
-
-.nav-days {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 15px;
-}
-
-.card {
-  background: #121826;
-  padding: 18px;
-  border-radius: 18px;
-  margin-bottom: 20px;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.4);
-}
-
-.metric-title {
-  font-size: 13px;
-  opacity: 0.7;
-  margin-bottom: 6px;
-}
-
-.metric-value {
-  font-size: 26px;
-  font-weight: 700;
-}
-
-.metric-sub {
-  font-size: 13px;
-  margin-top: 6px;
-}
-
-.progress {
-  height: 8px;
-  background: #1f2937;
-  border-radius: 10px;
-  overflow: hidden;
-  margin-top: 6px;
-}
-
-.progress-fill {
-  height: 100%;
-  width: 0%;
-  background: #1fd38a;
-  transition: 0.4s ease;
-}
-
-.exercise-row {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 8px;
-}
-
-.exercise-row input {
-  width: 70px;
-  padding: 6px;
-  background: #0b0f17;
-  border: 1px solid #1f2937;
-  border-radius: 6px;
-  color: white;
+.date-nav {
+  display:flex;
+  justify-content:center;
+  gap:10px;
+  margin-top:10px;
 }
 
 button {
-  padding: 8px 12px;
-  border-radius: 8px;
-  border: none;
-  background: #1f2937;
-  color: white;
+  background:#1f2937;
+  border:none;
+  color:white;
+  padding:10px 14px;
+  border-radius:8px;
+  cursor:pointer;
 }
 
 button.primary {
-  background: #1fd38a;
-  color: black;
-  font-weight: 600;
+  background:#2563eb;
+}
+
+.card {
+  background:#111827;
+  padding:16px;
+  border-radius:12px;
+  margin-bottom:18px;
+}
+
+.exercise-block {
+  background:#1a2233;
+  padding:14px;
+  border-radius:10px;
+  margin-bottom:12px;
+}
+
+.exercise-title {
+  font-weight:600;
+  margin-bottom:6px;
+}
+
+input {
+  width:100%;
+  padding:10px;
+  margin-bottom:8px;
+  border-radius:8px;
+  border:none;
+  background:#0f172a;
+  color:white;
+}
+
+.phase {
+  padding:12px;
+  border-radius:10px;
+  text-align:center;
+  font-weight:600;
+  margin-bottom:16px;
 }
