@@ -1,54 +1,45 @@
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
-import {
-  getAuth,
-  createUserWithEmailAndPassword,
-  signInWithEmailAndPassword,
-  signOut,
-  onAuthStateChanged
-} from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
+const TARGET = new Date("2026-04-27");
+let seconds = 0;
+let timerInt = null;
 
-import {
-  getFirestore,
-  doc,
-  setDoc
-} from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
-
-/* FIREBASE */
-const firebaseConfig = {
-  apiKey: "AIzaSyD7sHTLny_kAtTN_xXmkovFC-GSTtFMeNo",
-  authDomain: "prdv-platform.firebaseapp.com",
-  projectId: "prdv-platform",
-  appId: "1:578412239135:web:7680746ea4df63246df82a"
+let perf = {
+  push: 30,
+  pull: 8,
+  twoKm: 470,
+  sleep: 7,
+  fatigue: 5
 };
 
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
+let loadHistory = JSON.parse(localStorage.getItem("loadHistory")) || [];
+let twoKmHistory = JSON.parse(localStorage.getItem("twoKmHistory")) || [];
 
-/* AUTH */
-window.register=()=>createUserWithEmailAndPassword(auth,email.value,password.value);
-window.login=()=>signInWithEmailAndPassword(auth,email.value,password.value);
-window.logout=()=>signOut(auth);
-
-onAuthStateChanged(auth,user=>{
-  userStatus.innerText=user?"Logged in":"Not logged in";
-});
-
-/* DATE SYSTEM */
-const START=new Date();
-const END=new Date("2026-04-27");
-let currentDate=new Date();
+/* COUNTDOWN */
+function updateCountdown() {
+  const diff = TARGET - new Date();
+  const days = Math.ceil(diff / (1000*60*60*24));
+  countdown.innerText = days + " days to PRDV";
+}
 
 /* TIMER */
-let seconds=0,timerInt=null;
-window.startTimer=()=>{if(!timerInt)timerInt=setInterval(()=>{seconds++;updateTimer()},1000)};
-window.pauseTimer=()=>{clearInterval(timerInt);timerInt=null};
-window.endSession=async()=>{
+function startTimer(){
+  if(!timerInt)
+    timerInt=setInterval(()=>{
+      seconds++;
+      updateTimer();
+    },1000);
+}
+
+function pauseTimer(){
+  clearInterval(timerInt);
+  timerInt=null;
+}
+
+function endSession(){
   pauseTimer();
-  await saveSession();
+  recordLoad();
   seconds=0;
   updateTimer();
-};
+}
 
 function updateTimer(){
   const h=String(Math.floor(seconds/3600)).padStart(2,'0');
@@ -57,103 +48,123 @@ function updateTimer(){
   timer.innerText=`${h}:${m}:${s}`;
 }
 
-/* PERFORMANCE DATA */
-let perf={push:30,pull:8,twoKm:470,sleep:7,fatigue:5};
-
-/* UPDATE INPUT */
-window.updatePerformance=function(){
+/* UPDATE PERFORMANCE */
+function updatePerformance(){
   perf.push=parseInt(pushInput.value)||perf.push;
   perf.pull=parseInt(pullInput.value)||perf.pull;
   perf.twoKm=parseInt(twoKmInput.value)||perf.twoKm;
   perf.sleep=parseFloat(sleepInput.value)||perf.sleep;
   perf.fatigue=parseInt(fatigueInput.value)||perf.fatigue;
+
+  twoKmHistory.push(perf.twoKm);
+  localStorage.setItem("twoKmHistory",JSON.stringify(twoKmHistory));
+
   render();
-};
+}
 
-/* SELECTION READINESS INDEX */
-function selectionIndex(){
+/* SRI */
+function calculateSRI(){
   let score=0;
-
-  score+=Math.min(perf.push/60*30,30);
-  score+=Math.min(perf.pull/15*20,20);
-  score+=Math.max(0,(500-perf.twoKm)/100*30);
-  score+=Math.min(perf.sleep/8*10,10);
-  score+=Math.max(0,(10-perf.fatigue)/10*10);
-
+  score+=Math.min((perf.push/60)*25,25);
+  score+=Math.min((perf.pull/15)*20,20);
+  score+=Math.max(0,((500-perf.twoKm)/100)*25);
+  score+=Math.min((perf.sleep/8)*10,10);
+  score+=Math.max(0,((10-perf.fatigue)/10)*20);
   return Math.round(Math.min(score,100));
 }
 
-/* TRAINING LOAD */
-function trainingLoad(){
-  return seconds/60 + (perf.fatigue*5);
+/* LOAD MODEL */
+function recordLoad(){
+  const load=seconds/60 + perf.fatigue*4;
+  loadHistory.push(load);
+  if(loadHistory.length>28) loadHistory.shift();
+  localStorage.setItem("loadHistory",JSON.stringify(loadHistory));
 }
 
-/* INJURY RISK */
-function injuryRisk(){
-  const load=trainingLoad();
-  if(load>200)return "HIGH";
-  if(load>120)return "MODERATE";
-  return "LOW";
+function acuteLoad(){
+  return loadHistory.slice(-7).reduce((a,b)=>a+b,0);
 }
 
-/* FORECAST */
-function forecast(){
-  const predicted=Math.max(420,perf.twoKm-(perf.push+perf.pull)/15);
-  return `Predicted 2KM: ${predicted}s`;
+function chronicLoad(){
+  return loadHistory.reduce((a,b)=>a+b,0)/loadHistory.length||0;
 }
 
-/* SAVE SESSION */
-async function saveSession(){
-  const user=auth.currentUser;
-  if(!user)return;
-  await setDoc(
-    doc(db,"users",user.uid,"sessions",currentDate.toDateString()),
-    {
-      date:currentDate,
-      duration:seconds,
-      performance:perf,
-      sri:selectionIndex()
-    }
-  );
+function loadRatio(){
+  return acuteLoad()/(chronicLoad()||1);
 }
 
-/* WORKOUT */
-function workoutPlan(){
-  const day=currentDate.getDay();
-  if(day===1)return "Lower Unilateral + Z2";
-  if(day===2)return "VO2 Intervals";
-  if(day===3)return "Upper Strength";
-  if(day===4)return "Tempo";
-  if(day===5)return "Conditioning";
-  if(day===6)return "Long Z2";
-  return "Recovery";
-}
+/* AI */
+function generateAdvice(){
+  const sri=calculateSRI();
+  const ratio=loadRatio();
 
-/* NAV */
-window.changeDay=(o)=>{
-  currentDate.setDate(currentDate.getDate()+o);
-  if(currentDate<START)currentDate=new Date(START);
-  if(currentDate>END)currentDate=new Date(END);
-  render();
-};
+  if(ratio>1.5) return "⚠ Deload recommended – overload detected.";
+  if(perf.twoKm>460) return "Increase VO2 + threshold work.";
+  if(perf.push<40) return "Increase push-up density.";
+  if(perf.pull<10) return "Add weighted pull-ups.";
+  if(sri>80) return "Maintain intensity – competitive.";
+  return "Build aerobic base.";
+}
 
 /* RENDER */
 function render(){
-  currentDateDiv.innerText=currentDate.toDateString();
 
-  const sri=selectionIndex();
-  sriScore.innerText=`SRI: ${sri}/100`;
+  updateCountdown();
+
+  const sri=calculateSRI();
+  sriValue.innerText=sri;
+  sriBar.style.width=sri+"%";
   sriStatus.innerText=
     sri>75?"GREEN – Competitive":
     sri>55?"AMBER – Building":
     "RED – Below Standard";
 
-  loadDisplay.innerText=`Training Load: ${trainingLoad().toFixed(1)}`;
-  injuryRisk.innerText=`Injury Risk: ${injuryRisk()}`;
+  const ratio=loadRatio();
+  loadValue.innerText=ratio.toFixed(2);
+  loadBar.style.width=Math.min(ratio*50,100)+"%";
 
-  forecast.innerText=forecast();
+  loadWarning.innerText=
+    ratio>1.5?"High overload":
+    ratio<0.8?"Undertraining":
+    "Balanced";
 
-  workoutCard.innerText=workoutPlan();
+  aiAdvice.innerText=generateAdvice();
+
+  renderCharts();
 }
 
+/* CHARTS */
+let loadChart,twoKmChart;
+
+function renderCharts(){
+
+  if(loadChart) loadChart.destroy();
+  if(twoKmChart) twoKmChart.destroy();
+
+  loadChart=new Chart(loadChartCanvas,{
+    type:'line',
+    data:{
+      labels:loadHistory.map((_,i)=>i+1),
+      datasets:[{
+        data:loadHistory,
+        borderColor:'#1fd38a',
+        tension:0.3
+      }]
+    }
+  });
+
+  twoKmChart=new Chart(twoKmChartCanvas,{
+    type:'line',
+    data:{
+      labels:twoKmHistory.map((_,i)=>i+1),
+      datasets:[{
+        data:twoKmHistory,
+        borderColor:'#3b82f6',
+        tension:0.3
+      }]
+    }
+  });
+}
+
+updateCountdown();
 render();
