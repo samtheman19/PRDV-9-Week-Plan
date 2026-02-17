@@ -10,10 +10,6 @@
 
 <body>
 
-<!-- ===============================
-   NAVBAR
-================================ -->
-
 <div class="navbar">
   <div class="nav-title">🪖 PRDV Tactical OS</div>
   <div class="nav-actions">
@@ -58,19 +54,16 @@
   <input id="manualPullups" placeholder="Pullups">
   <input id="manualFatigue" placeholder="Fatigue (1-10)">
   <input id="sleepHours" placeholder="Sleep (hours)">
-  <input id="twoKmTime" placeholder="2KM Time (seconds)">
+  <input id="twoKmTime" placeholder="2KM Time (7:50 or 470)">
 
   <div class="button-row">
-    <button class="success" onclick="savePerformance()">
-      Save Performance
-    </button>
+    <button class="success" onclick="savePerformance()">Save Performance</button>
   </div>
 </div>
 
 <!-- ANALYTICS -->
 <div class="card">
   <h2>📈 Analytics</h2>
-
   <button onclick="loadAnalytics()">Load Analytics</button>
 
   <h3>VO2 Trend</h3>
@@ -82,24 +75,11 @@
   <h2>🎯 Selection</h2>
 
   <div class="button-row">
-    <button onclick="showSelectionDashboard()">
-      View Selection Score
-    </button>
-    <button onclick="runSelectionSimulation()">
-      Run Simulation
-    </button>
+    <button onclick="showSelectionDashboard()">View Selection Score</button>
+    <button onclick="runSelectionSimulation()">Run Simulation</button>
   </div>
 
   <div id="selectionOutput" style="margin-top:15px;"></div>
-</div>
-
-<!-- PROGRAM -->
-<div class="card">
-  <h2>📅 Program</h2>
-
-  <button onclick="showCalendar()">Show Calendar</button>
-
-  <div id="programOutput" style="margin-top:15px;"></div>
 </div>
 
 </div>
