@@ -14,19 +14,12 @@ body {
 .header {
   display: flex;
   justify-content: space-between;
-  align-items: center;
   margin-bottom: 25px;
 }
 
 .logo {
   font-weight: 700;
-  font-size: 18px;
   color: #1fd38a;
-}
-
-.countdown {
-  font-size: 14px;
-  opacity: 0.8;
 }
 
 .card {
@@ -40,19 +33,17 @@ body {
 .metric-title {
   font-size: 13px;
   opacity: 0.7;
-  margin-bottom: 5px;
+  margin-bottom: 8px;
 }
 
 .metric-value {
-  font-size: 32px;
+  font-size: 28px;
   font-weight: 700;
-  margin-bottom: 10px;
 }
 
 .metric-sub {
   font-size: 13px;
-  margin-top: 8px;
-  opacity: 0.8;
+  margin-top: 6px;
 }
 
 .progress {
@@ -60,6 +51,7 @@ body {
   background: #1f2937;
   border-radius: 10px;
   overflow: hidden;
+  margin-top: 6px;
 }
 
 .progress-fill {
@@ -69,47 +61,32 @@ body {
   transition: width 0.4s ease;
 }
 
-.grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px;
-  margin-bottom: 10px;
+.exercise-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
 }
 
-input {
-  padding: 8px;
-  border-radius: 10px;
-  border: 1px solid #1f2937;
+.exercise-row input {
+  width: 70px;
+  padding: 6px;
   background: #0b0f17;
+  border: 1px solid #1f2937;
+  border-radius: 6px;
   color: white;
 }
 
 button {
-  padding: 8px 12px;
+  padding: 10px;
   border-radius: 10px;
   border: none;
   background: #1f2937;
   color: white;
+  margin-top: 10px;
 }
 
 button.primary {
   background: #1fd38a;
   color: black;
   font-weight: 600;
-}
-
-.timer {
-  font-size: 28px;
-  text-align: center;
-  margin: 10px 0;
-}
-
-.btn-row {
-  display: flex;
-  justify-content: space-between;
-}
-
-.ai-text {
-  font-size: 14px;
-  line-height: 1.5;
 }
