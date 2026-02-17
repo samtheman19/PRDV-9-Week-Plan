@@ -3,6 +3,11 @@ body {
   background: #0b0f17;
   color: white;
   font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+  transition: 0.3s ease;
+}
+
+body.operator {
+  background: #000;
 }
 
 .app {
@@ -14,12 +19,25 @@ body {
 .header {
   display: flex;
   justify-content: space-between;
-  margin-bottom: 25px;
+  margin-bottom: 10px;
 }
 
 .logo {
   font-weight: 700;
   color: #1fd38a;
+}
+
+.countdown {
+  text-align: center;
+  margin-bottom: 15px;
+  opacity: 0.7;
+}
+
+.nav-days {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
 }
 
 .card {
@@ -33,11 +51,11 @@ body {
 .metric-title {
   font-size: 13px;
   opacity: 0.7;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
 }
 
 .metric-value {
-  font-size: 28px;
+  font-size: 26px;
   font-weight: 700;
 }
 
@@ -58,7 +76,7 @@ body {
   height: 100%;
   width: 0%;
   background: #1fd38a;
-  transition: width 0.4s ease;
+  transition: 0.4s ease;
 }
 
 .exercise-row {
@@ -77,12 +95,11 @@ body {
 }
 
 button {
-  padding: 10px;
-  border-radius: 10px;
+  padding: 8px 12px;
+  border-radius: 8px;
   border: none;
   background: #1f2937;
   color: white;
-  margin-top: 10px;
 }
 
 button.primary {
