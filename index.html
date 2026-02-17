@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>PRDV Tactical OS – V5 Elite</title>
+  <title>PRDV Tactical OS – V7 Selection Engine</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#0b0f17">
   <link rel="stylesheet" href="style.css">
@@ -10,52 +10,67 @@
 
 <div class="app">
 
-  <header class="header">
-    <div class="logo">🪖 PRDV Tactical OS</div>
-    <div id="userStatus"></div>
-  </header>
+<header class="header">
+  <div class="logo">🪖 PRDV Selection Engine</div>
+  <div id="userStatus"></div>
+</header>
 
-  <!-- DATE NAV -->
-  <div class="date-nav">
-    <button onclick="changeDay(-1)">◀</button>
-    <div id="currentDate"></div>
-    <button onclick="changeDay(1)">▶</button>
+<div class="date-nav">
+  <button onclick="changeDay(-1)">◀</button>
+  <div id="currentDate"></div>
+  <button onclick="changeDay(1)">▶</button>
+</div>
+
+<div class="card">
+  <h3>Selection Readiness Index</h3>
+  <div id="sriScore"></div>
+  <div id="sriStatus"></div>
+</div>
+
+<div class="card">
+  <h3>Performance Inputs</h3>
+  <div class="grid-2">
+    <input id="pushInput" placeholder="Pushups">
+    <input id="pullInput" placeholder="Pullups">
+    <input id="twoKmInput" placeholder="2KM (sec)">
+    <input id="sleepInput" placeholder="Sleep (hrs)">
+    <input id="fatigueInput" placeholder="Fatigue (1–10)">
   </div>
+  <button onclick="updatePerformance()">Update</button>
+</div>
 
-  <!-- READINESS -->
-  <div class="card">
-    <h3>Readiness</h3>
-    <div class="readiness-grid">
-      <input id="sleepInput" type="number" placeholder="Sleep (hrs)">
-      <input id="fatigueInput" type="number" placeholder="Fatigue (1–10)">
-    </div>
-    <div id="readinessStatus"></div>
-  </div>
+<div class="card">
+  <h3>Load & Injury Monitor</h3>
+  <div id="loadDisplay"></div>
+  <div id="injuryRisk"></div>
+</div>
 
-  <!-- TIMER -->
-  <div class="card timer-card">
-    <div id="timer">00:00:00</div>
-    <div class="timer-buttons">
-      <button onclick="startTimer()">Start</button>
-      <button onclick="pauseTimer()">Pause</button>
-      <button onclick="endSession()">End</button>
-    </div>
-  </div>
+<div class="card">
+  <h3>AI Forecast</h3>
+  <div id="forecast"></div>
+</div>
 
-  <!-- WORKOUT -->
-  <div class="card" id="workoutCard"></div>
+<div class="card">
+  <h3>Today's Mission</h3>
+  <div id="workoutCard"></div>
+</div>
 
-  <!-- AUTH -->
-  <div class="card">
-    <h3>Login</h3>
-    <input id="email" placeholder="Email">
-    <input id="password" type="password" placeholder="Password">
-    <div class="auth-buttons">
-      <button onclick="register()">Register</button>
-      <button onclick="login()">Login</button>
-      <button onclick="logout()">Logout</button>
-    </div>
-  </div>
+<div class="card">
+  <h3>Timer</h3>
+  <div id="timer">00:00:00</div>
+  <button onclick="startTimer()">Start</button>
+  <button onclick="pauseTimer()">Pause</button>
+  <button onclick="endSession()">End</button>
+</div>
+
+<div class="card">
+  <h3>Login</h3>
+  <input id="email" placeholder="Email">
+  <input id="password" type="password" placeholder="Password">
+  <button onclick="register()">Register</button>
+  <button onclick="login()">Login</button>
+  <button onclick="logout()">Logout</button>
+</div>
 
 </div>
 
