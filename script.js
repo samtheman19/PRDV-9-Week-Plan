@@ -1,327 +1,284 @@
-/* ===============================
-   FIREBASE IMPORTS
-================================ */
+/* =========================================================
+   PARATROOPER ENGINE – FINAL BUILD
+   10 Week Progressive Program
+   Tracks from first load → April 27 2026
+========================================================= */
 
-import { initializeApp } 
-from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
+const PROGRAM_END = new Date("2026-04-27")
+const BASE_2KM = 470
 
-import {
-  getAuth,
-  createUserWithEmailAndPassword,
-  signInWithEmailAndPassword,
-  signOut,
-  onAuthStateChanged
-} from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
+let selectedDate = new Date()
 
-import {
-  getFirestore,
-  collection,
-  addDoc,
-  getDocs,
-  query,
-  where
-} from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
+/* =========================================================
+   INITIALISE PROGRAM
+========================================================= */
 
-/* ===============================
-   FIREBASE CONFIG
-================================ */
-
-const firebaseConfig = {
-  apiKey: "AIzaSyD7sHTLny_kAtTN_xXmkovFC-GSTtFMeNo",
-  authDomain: "prdv-platform.firebaseapp.com",
-  projectId: "prdv-platform"
-};
-
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
-
-/* ===============================
-   GLOBAL PROGRAM STATE
-================================ */
-
-const TOTAL_DAYS = 70;
-const BASE_2KM = 470;
-
-let currentViewDay = 0;
-
-/* ===============================
-   AUTH
-================================ */
-
-window.register = async () => {
-  try { await createUserWithEmailAndPassword(auth,email.value,password.value); }
-  catch(e){ alert(e.message); }
-};
-
-window.login = async () => {
-  try { await signInWithEmailAndPassword(auth,email.value,password.value); }
-  catch(e){ alert(e.message); }
-};
-
-window.logout = async () => await signOut(auth);
-
-onAuthStateChanged(auth,(user)=>{
-  const status=document.getElementById("userStatus");
-  if(!status) return;
-  status.innerHTML = user
-    ? `<span style="color:#10b981;">Logged in as ${user.email}</span>`
-    : `<span style="color:#ef4444;">Not logged in</span>`;
-});
-
-/* ===============================
-   PROGRAM CLOCK
-================================ */
-
-function getProgramStart(){
-  if(!localStorage.getItem("programStart")){
-    localStorage.setItem("programStart",Date.now());
+function initProgram() {
+  if (!localStorage.getItem("programStart")) {
+    localStorage.setItem("programStart", new Date().toISOString())
   }
-  return parseInt(localStorage.getItem("programStart"));
 }
 
-function getTodayIndex(){
-  const diff=Math.floor((Date.now()-getProgramStart())/(1000*60*60*24));
-  return Math.min(diff,TOTAL_DAYS-1);
+function getStartDate() {
+  return new Date(localStorage.getItem("programStart"))
 }
 
-/* ===============================
+function getDayIndex(date) {
+  const diff = date - getStartDate()
+  return Math.floor(diff / (1000 * 60 * 60 * 24))
+}
+
+function getWeek(date) {
+  return Math.floor(getDayIndex(date) / 7) + 1
+}
+
+function formatFullDate(d) {
+  return d.toLocaleDateString("en-GB", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric"
+  })
+}
+
+/* =========================================================
+   READINESS ENGINE
+========================================================= */
+
+function getReadiness() {
+  const sleep = parseInt(localStorage.getItem("sleep")) || 7
+  const fatigue = parseInt(localStorage.getItem("fatigue")) || 3
+  const stress = parseInt(localStorage.getItem("stress")) || 3
+
+  const score = sleep * 2 - fatigue * 1.5 - stress
+  if (score >= 10) return "GREEN"
+  if (score >= 5) return "AMBER"
+  return "RED"
+}
+
+function volumeModifier(state) {
+  if (state === "GREEN") return 1
+  if (state === "AMBER") return 0.8
+  return 0.6
+}
+
+/* =========================================================
+   PERFORMANCE PROJECTION
+========================================================= */
+
+function projected2km(date) {
+  const base = parseInt(localStorage.getItem("twoKm")) || BASE_2KM
+  const week = getWeek(date)
+  const gain = week * 2
+  return Math.max(base - gain, 390)
+}
+
+/* =========================================================
    WORKOUT STRUCTURE
-================================ */
+========================================================= */
 
-function getWorkoutForIndex(dayIndex){
+function buildWorkout(date) {
 
-  const week=Math.floor(dayIndex/7)+1;
-  const day=dayIndex%7;
-  const twoKm=parseInt(localStorage.getItem("twoKm"))||BASE_2KM;
+  const week = getWeek(date)
+  const day = ((getDayIndex(date) % 7) + 7) % 7
+  const readiness = getReadiness()
+  const volume = volumeModifier(readiness)
 
-  if(day===0) return {week,title:"Recovery + Mobility",exercises:[]};
+  const twoKm = parseInt(localStorage.getItem("twoKm")) || BASE_2KM
+  const split = (twoKm / 5).toFixed(1)
 
-  if(day===1) return {
-    week,title:"Lower Strength",
-    exercises:[
-      {name:"Bulgarian Split Squat",unilateral:true},
-      {name:"Single Leg RDL",unilateral:true},
-      {name:"Lateral Lunge",unilateral:true}
-    ]
-  };
+  const vo2Reps = week <= 3 ? 6 : week <= 6 ? 7 : 8
+  const longMinutes = week <= 3 ? 70 : week <= 6 ? 80 : 90
 
-  if(day===2){
-    const reps=week<=3?6:week<=6?7:8;
-    return {week,title:"VO2 Intervals",
-      exercises:[
-        {name:`${reps} x 400m @ ${(twoKm/5).toFixed(1)}s`,cardio:true}
+  const program = [
+
+    {
+      title: "Lower Body – Unilateral Strength",
+      exercises: [
+        { name: "Bulgarian Split Squat", sets: 4 },
+        { name: "Single Leg RDL", sets: 4 },
+        { name: "Lateral Lunge", sets: 3 },
+        { name: "Soleus Raise", sets: 4 }
       ]
-    };
-  }
+    },
 
-  if(day===3) return {
-    week,title:"Upper Strength",
-    exercises:[
-      {name:"Pull Ups"},
-      {name:"Barbell Row"},
-      {name:"DB Bench"}
-    ]
-  };
+    {
+      title: `VO2 Max – ${vo2Reps} x 400m @ ${split}s`,
+      exercises: [
+        { name: "400m Intervals", sets: vo2Reps }
+      ]
+    },
 
-  if(day===4) return {
-    week,title:"Tempo",
-    exercises:[{name:"3 x 1km Tempo",cardio:true}]
-  };
+    {
+      title: "Upper Strength",
+      exercises: [
+        { name: "Pull Ups", sets: 4 },
+        { name: "Barbell Row", sets: 4 },
+        { name: "DB Bench Press", sets: 4 },
+        { name: "Face Pull", sets: 3 }
+      ]
+    },
 
-  if(day===5) return {
-    week,title:"Conditioning",
-    exercises:[
-      {name:"Ski 400m",cardio:true},
-      {name:"Wall Balls"},
-      {name:"Row 400m",cardio:true}
-    ]
-  };
+    {
+      title: "Tempo Run – 3 x 1km",
+      exercises: [
+        { name: "1km Tempo Efforts", sets: 3 }
+      ]
+    },
 
-  if(day===6){
-    const mins=week<=3?70:week<=6?80:90;
-    return {week,title:`Long Zone 2 (${mins}min)`,
-      exercises:[{name:"Zone 2 Run",cardio:true}]
-    };
+    {
+      title: "Conditioning Circuit",
+      exercises: [
+        { name: "400m Ski", sets: 3 },
+        { name: "20 Wall Balls", sets: 3 },
+        { name: "400m Row", sets: 3 }
+      ]
+    },
+
+    {
+      title: `Long Zone 2 – ${longMinutes} min`,
+      exercises: [
+        { name: "Zone 2 Run", sets: 1 }
+      ]
+    },
+
+    {
+      title: "Recovery + Mobility",
+      exercises: [
+        { name: "Mobility Flow", sets: 1 }
+      ]
+    }
+
+  ]
+
+  const today = program[day]
+
+  today.exercises.forEach(ex => {
+    ex.sets = Math.round(ex.sets * volume)
+  })
+
+  return {
+    week,
+    readiness,
+    workout: today
   }
 }
 
-/* ===============================
-   NAVIGATION
-================================ */
+/* =========================================================
+   SESSION STORAGE
+========================================================= */
 
-window.nextDay=()=>{ if(currentViewDay<TOTAL_DAYS-1){ currentViewDay++; renderDashboard(); }};
-window.prevDay=()=>{ if(currentViewDay>0){ currentViewDay--; renderDashboard(); }};
-
-/* ===============================
-   CALENDAR GRID
-================================ */
-
-async function renderCalendar(){
-
-  const workout=getWorkoutForIndex(currentViewDay);
-  const week=workout.week;
-  const startDay=(week-1)*7;
-
-  const container=document.getElementById("todayWorkout");
-
-  let grid=`<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-bottom:15px;">`;
-
-  for(let i=0;i<7;i++){
-    const dayIndex=startDay+i;
-    const isToday=dayIndex===getTodayIndex();
-    const style=isToday?"background:#10b981;":"background:#1f2937;";
-    grid+=`<div onclick="jumpToDay(${dayIndex})"
-             style="padding:8px;text-align:center;border-radius:6px;cursor:pointer;${style}">
-             ${i+1}
-           </div>`;
-  }
-
-  grid+=`</div>`;
-
-  container.insertAdjacentHTML("afterbegin",grid);
+function sessionKey(date) {
+  return "session_" + date.toDateString()
 }
 
-window.jumpToDay=(index)=>{
-  currentViewDay=index;
-  renderDashboard();
-};
+function saveSession() {
+  const inputs = document.querySelectorAll(".setInput")
+  const data = {}
+  inputs.forEach(i => data[i.id] = i.value)
+  localStorage.setItem(sessionKey(selectedDate), JSON.stringify(data))
+  localStorage.setItem("lastSession", new Date().toDateString())
+  alert("Session saved.")
+}
 
-/* ===============================
-   DASHBOARD
-================================ */
+function loadSession() {
+  const data = JSON.parse(localStorage.getItem(sessionKey(selectedDate)))
+  if (!data) return
+  Object.keys(data).forEach(id => {
+    const el = document.getElementById(id)
+    if (el) el.value = data[id]
+  })
+}
 
-function renderDashboard(){
+/* =========================================================
+   RENDER CALENDAR
+========================================================= */
 
-  const workout=getWorkoutForIndex(currentViewDay);
-  const container=document.getElementById("todayWorkout");
-  if(!container) return;
+function renderCalendar() {
 
-  let exHTML="";
+  const container = document.getElementById("calendarStrip")
+  if (!container) return
 
-  workout.exercises.forEach((ex,i)=>{
+  container.innerHTML = ""
 
-    if(ex.cardio){
-      exHTML+=`
-      <div class="exercise-card">
-        <h3>${ex.name}</h3>
-        <input placeholder="Time (sec)" id="ex_${i}_time">
-      </div>`;
+  const start = getStartDate()
+  let d = new Date(start)
+
+  while (d <= PROGRAM_END) {
+
+    const btn = document.createElement("button")
+    btn.innerText = d.getDate()
+
+    if (d.toDateString() === selectedDate.toDateString()) {
+      btn.style.background = "#10b981"
     }
 
-    else if(ex.unilateral){
-      exHTML+=`
-      <div class="exercise-card">
-        <h3>${ex.name}</h3>
-        <input placeholder="Left Weight" id="ex_${i}_lw">
-        <input placeholder="Left Reps" id="ex_${i}_lr">
-        <input placeholder="Right Weight" id="ex_${i}_rw">
-        <input placeholder="Right Reps" id="ex_${i}_rr">
-      </div>`;
+    btn.onclick = () => {
+      selectedDate = new Date(d)
+      renderCalendar()
+      renderWorkout()
     }
 
-    else{
-      exHTML+=`
-      <div class="exercise-card">
-        <h3>${ex.name}</h3>
-        <input placeholder="Weight" id="ex_${i}_w">
-        <input placeholder="Reps" id="ex_${i}_r">
-      </div>`;
+    container.appendChild(btn)
+    d.setDate(d.getDate() + 1)
+  }
+}
+
+/* =========================================================
+   RENDER WORKOUT
+========================================================= */
+
+function renderWorkout() {
+
+  const data = buildWorkout(selectedDate)
+
+  const container = document.getElementById("todayWorkout")
+  if (!container) return
+
+  let html = `
+    <div class="card">
+      <h2>${formatFullDate(selectedDate)}</h2>
+      <h3>Week ${data.week}</h3>
+      <h3>${data.workout.title}</h3>
+      <p>Readiness: ${data.readiness}</p>
+      <p>Projected 2KM: ${projected2km(selectedDate)} sec</p>
+  `
+
+  data.workout.exercises.forEach((ex, i) => {
+
+    html += `<h4>${ex.name}</h4>`
+
+    for (let s = 1; s <= ex.sets; s++) {
+
+      const id = `ex_${i}_${s}`
+
+      html += `
+        <input
+          id="${id}"
+          class="setInput"
+          placeholder="Reps / Load / Time"
+          style="margin-bottom:6px;"
+        />
+      `
     }
-  });
+  })
 
-  container.innerHTML=`
-  <div class="card">
-    <h2>Week ${workout.week} — ${workout.title}</h2>
-
-    <div style="display:flex;justify-content:space-between;margin-bottom:15px;">
-      <button onclick="prevDay()">⬅</button>
-      <button onclick="nextDay()">➡</button>
+  html += `
+      <button onclick="saveSession()" class="success">Save Session</button>
     </div>
+  `
 
-    ${exHTML}
-
-    <button onclick="saveSession()" class="primary">
-      Save Session
-    </button>
-
-    <div id="progressSuggestion" style="margin-top:15px;"></div>
-
-  </div>`;
-
-  renderCalendar();
+  container.innerHTML = html
+  loadSession()
 }
 
-/* ===============================
-   SAVE SESSION
-================================ */
-
-window.saveSession=async function(){
-
-  const workout=getWorkoutForIndex(currentViewDay);
-  let data=[];
-
-  workout.exercises.forEach((ex,i)=>{
-    if(ex.cardio){
-      data.push({name:ex.name,time:document.getElementById(`ex_${i}_time`)?.value});
-    }
-    else if(ex.unilateral){
-      data.push({
-        name:ex.name,
-        lw:document.getElementById(`ex_${i}_lw`)?.value,
-        lr:document.getElementById(`ex_${i}_lr`)?.value,
-        rw:document.getElementById(`ex_${i}_rw`)?.value,
-        rr:document.getElementById(`ex_${i}_rr`)?.value
-      });
-    }
-    else{
-      data.push({
-        name:ex.name,
-        weight:document.getElementById(`ex_${i}_w`)?.value,
-        reps:document.getElementById(`ex_${i}_r`)?.value
-      });
-    }
-  });
-
-  const user=auth.currentUser;
-  if(user){
-    await addDoc(collection(db,"users",user.uid,"sessions"),{
-      dayIndex:currentViewDay,
-      week:workout.week,
-      exercises:data,
-      timestamp:Date.now()
-    });
-  }
-
-  suggestProgression(data);
-  alert("Session saved.");
-};
-
-/* ===============================
-   AUTO PROGRESSION ENGINE
-================================ */
-
-function suggestProgression(data){
-
-  let suggestion="";
-
-  data.forEach(ex=>{
-    if(ex.weight && ex.reps>=6){
-      suggestion+=`Increase ${ex.name} by 2.5kg next week.<br>`;
-    }
-  });
-
-  if(suggestion==="") suggestion="Maintain current loads.";
-
-  const el=document.getElementById("progressSuggestion");
-  if(el) el.innerHTML=suggestion;
-}
-
-/* ===============================
+/* =========================================================
    INIT
-================================ */
+========================================================= */
 
-window.onload=function(){
-  currentViewDay=getTodayIndex();
-  renderDashboard();
-};
+window.onload = function () {
+  initProgram()
+  selectedDate = new Date()
+  renderCalendar()
+  renderWorkout()
+}
