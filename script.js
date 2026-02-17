@@ -16,7 +16,10 @@ import {
 import {
   getFirestore,
   collection,
-  addDoc
+  addDoc,
+  getDocs,
+  query,
+  orderBy
 } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
 
 /* ===============================
@@ -29,8 +32,7 @@ const firebaseConfig = {
   projectId: "prdv-platform",
   storageBucket: "prdv-platform.firebasestorage.app",
   messagingSenderId: "578412239135",
-  appId: "1:578412239135:web:7680746ea4df63246df82a",
-  measurementId: "G-T4KJ9P53GZ"
+  appId: "1:578412239135:web:7680746ea4df63246df82a"
 };
 
 const app = initializeApp(firebaseConfig);
@@ -71,7 +73,6 @@ window.login = async () => {
 
 window.logout = async () => {
   await signOut(auth);
-  alert("Logged out.");
 };
 
 /* ===============================
@@ -84,15 +85,17 @@ onAuthStateChanged(auth, (user) => {
   if (!status) return;
 
   if (user) {
-    status.innerHTML =
-      `<span style="color:#10b981;font-weight:600;">
+    status.innerHTML = `
+      <span style="color:#10b981;font-weight:600;">
         Logged in as ${user.email}
-      </span>`;
+      </span>
+    `;
   } else {
-    status.innerHTML =
-      `<span style="color:#ef4444;font-weight:600;">
+    status.innerHTML = `
+      <span style="color:#ef4444;">
         Not logged in
-      </span>`;
+      </span>
+    `;
   }
 });
 
@@ -219,26 +222,93 @@ window.savePerformance = async function () {
   const workout = missionGenerator(twoKm, state);
   const selection = selectionProbability(push, pull, twoKm);
 
+  /* 🔥 RECOVERY PANEL UPDATE */
+  const recoveryDiv = document.getElementById("recoveryInsight");
+  if (recoveryDiv) {
+    recoveryDiv.innerHTML = `
+      <div style="
+        padding:12px;
+        border-radius:8px;
+        font-weight:600;
+        background:${
+          state==="GREEN"?"rgba(16,185,129,0.15)":
+          state==="AMBER"?"rgba(245,158,11,0.15)":
+          "rgba(239,68,68,0.15)"
+        };
+        color:${
+          state==="GREEN"?"#10b981":
+          state==="AMBER"?"#f59e0b":
+          "#ef4444"
+        };
+      ">
+        ${state} — ${
+          state==="GREEN"?"Full intensity permitted":
+          state==="AMBER"?"Moderate load advised":
+          "Recovery focus required"
+        }
+      </div>
+    `;
+  }
+
   const user = auth.currentUser;
 
   if (user) {
-    try {
-      await addDoc(collection(db, "users", user.uid, "sessions"), {
-        push,
-        pull,
-        fatigue,
-        sleep,
-        twoKm,
-        xp,
-        rank,
-        timestamp: Date.now()
-      });
-    } catch (e) {
-      console.log("Firestore save failed:", e.message);
-    }
+    await addDoc(collection(db, "users", user.uid, "sessions"), {
+      push,
+      pull,
+      fatigue,
+      sleep,
+      twoKm,
+      xp,
+      rank,
+      timestamp: Date.now()
+    });
   }
 
   renderDashboard({ xp, rank, state, workout, selection });
+};
+
+/* ===============================
+   ANALYTICS (VO2 TREND)
+================================ */
+
+window.loadAnalytics = async function(){
+
+  const user = auth.currentUser;
+  if(!user) return alert("Login first.");
+
+  const q = query(
+    collection(db,"users",user.uid,"sessions"),
+    orderBy("timestamp","asc")
+  );
+
+  const snapshot = await getDocs(q);
+
+  let labels = [];
+  let vo2 = [];
+  let count = 1;
+
+  snapshot.forEach(doc=>{
+    const data = doc.data();
+    labels.push("S"+count);
+    vo2.push(500 - data.twoKm);
+    count++;
+  });
+
+  new Chart(
+    document.getElementById("vo2Trend"),
+    {
+      type:"line",
+      data:{
+        labels,
+        datasets:[{
+          label:"VO2 Score",
+          data:vo2,
+          borderColor:"#10b981"
+        }]
+      }
+    }
+  );
 };
 
 /* ===============================
@@ -258,12 +328,4 @@ window.onload = function () {
   const selection = selectionProbability(push, pull, twoKm);
 
   renderDashboard({ xp, rank, state, workout, selection });
-};
-
-/* ===============================
-   OPERATOR MODE
-================================ */
-
-window.toggleOperatorMode = function () {
-  document.body.classList.toggle("operator");
 };
