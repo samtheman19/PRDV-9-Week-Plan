@@ -1,79 +1,63 @@
-body {
+body{
   margin:0;
-  background:#0a0f18;
+  background:#0f172a;
+  font-family:-apple-system,BlinkMacSystemFont;
   color:white;
-  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto;
 }
-
-.app {
-  max-width:720px;
-  margin:auto;
+.header{
   padding:20px;
-}
-
-header {
   text-align:center;
-  margin-bottom:20px;
+  font-weight:700;
+  font-size:20px;
 }
-
-#dateDisplay {
-  font-weight:600;
-  margin-top:6px;
-}
-
-.date-nav {
+.nav{
   display:flex;
   justify-content:center;
-  gap:10px;
-  margin-top:10px;
+  gap:15px;
+  margin-bottom:10px;
 }
-
-button {
-  background:#1f2937;
+button{
+  padding:8px 12px;
   border:none;
-  color:white;
-  padding:10px 14px;
   border-radius:8px;
-  cursor:pointer;
+  background:#22c55e;
+  color:white;
 }
-
-button.primary {
-  background:#2563eb;
-}
-
-.card {
-  background:#111827;
-  padding:16px;
+.card{
+  background:#1e293b;
+  margin:12px;
+  padding:15px;
   border-radius:12px;
-  margin-bottom:18px;
 }
-
-.exercise-block {
-  background:#1a2233;
-  padding:14px;
-  border-radius:10px;
-  margin-bottom:12px;
-}
-
-.exercise-title {
-  font-weight:600;
-  margin-bottom:6px;
-}
-
-input {
+input{
   width:100%;
-  padding:10px;
-  margin-bottom:8px;
-  border-radius:8px;
+  padding:8px;
+  margin-top:6px;
+  border-radius:6px;
   border:none;
-  background:#0f172a;
-  color:white;
 }
-
-.phase {
-  padding:12px;
-  border-radius:10px;
+.exercise{
+  background:#334155;
+  padding:10px;
+  margin-top:8px;
+  border-radius:8px;
+}
+.timer{
+  font-size:18px;
+  margin-top:6px;
+}
+#calendarGrid{
+  display:grid;
+  grid-template-columns:repeat(7,1fr);
+  gap:4px;
+}
+.dayBox{
+  background:#334155;
+  padding:6px;
+  font-size:12px;
   text-align:center;
-  font-weight:600;
-  margin-bottom:16px;
+  border-radius:6px;
+}
+.today{
+  background:#22c55e;
 }
