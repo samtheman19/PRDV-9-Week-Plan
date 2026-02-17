@@ -1,313 +1,270 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-<meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PRDV Tactical V14</title>
+<title>PRDV Tactical V15</title>
 
 <style>
-:root{
-  --bg:#0b1117;
-  --card:#121a23;
-  --card2:#0f1620;
-  --accent:#22c55e;
-  --amber:#f59e0b;
-  --red:#ef4444;
-  --text:#e6edf3;
-  --muted:#8b98a5;
-}
-
-*{box-sizing:border-box}
 body{
   margin:0;
-  background:var(--bg);
-  font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto;
-  color:var(--text);
+  font-family:-apple-system,BlinkMacSystemFont,sans-serif;
+  background:#0b0f14;
+  color:#fff;
 }
-
-.container{
-  max-width:760px;
-  margin:auto;
+header{
   padding:20px;
-}
-
-.header{
+  font-weight:700;
+  font-size:22px;
+  color:#1ec97f;
   display:flex;
   justify-content:space-between;
-  align-items:center;
-  margin-bottom:20px;
 }
-
-.brand{
-  font-weight:700;
-  font-size:18px;
-  color:var(--accent);
+.container{padding:18px;}
+.card{
+  background:#121922;
+  padding:18px;
+  border-radius:18px;
+  margin-bottom:18px;
+  box-shadow:0 0 25px rgba(0,0,0,.3);
 }
-
-.countdown{
-  font-size:14px;
-  color:var(--muted);
-}
-
 .date-nav{
   display:flex;
   justify-content:space-between;
   align-items:center;
-  background:var(--card);
-  padding:14px;
-  border-radius:18px;
-  margin-bottom:18px;
+  margin-bottom:15px;
 }
-
-.date-nav button{
-  background:var(--card2);
+button{
+  background:#1ec97f;
   border:none;
-  color:var(--text);
-  padding:8px 14px;
+  padding:10px 14px;
   border-radius:12px;
-  font-size:16px;
-}
-
-.card{
-  background:var(--card);
-  padding:18px;
-  border-radius:20px;
-  margin-bottom:18px;
-}
-
-.card h2{
-  margin:0 0 10px 0;
-}
-
-.muted{
-  color:var(--muted);
-  font-size:14px;
-}
-
-.badge{
-  display:inline-block;
-  padding:6px 10px;
-  border-radius:10px;
-  font-size:12px;
   font-weight:600;
 }
-
-.green{background:#1e3a2a;color:var(--accent);}
-.amber{background:#3a2e1e;color:var(--amber);}
-.red{background:#3a1e1e;color:var(--red);}
-
-.exercise{
-  background:var(--card2);
-  padding:12px;
-  border-radius:14px;
-  margin-bottom:10px;
+.small-btn{
+  background:#1f2b38;
+  color:#fff;
 }
-
 input{
   width:100%;
+  background:#0f151d;
+  border:1px solid #1f2b38;
   padding:10px;
   border-radius:10px;
-  border:1px solid #243041;
-  background:#0c141c;
-  color:white;
-  margin-top:6px;
+  margin-bottom:8px;
+  color:#fff;
 }
-
-.btn{
-  width:100%;
-  padding:14px;
-  border:none;
+.exercise{
+  margin-bottom:20px;
+  padding:12px;
+  background:#0f151d;
   border-radius:14px;
-  font-weight:600;
-  margin-top:10px;
-  background:var(--accent);
-  color:black;
 }
-
-.progress-bar{
-  height:8px;
-  border-radius:6px;
-  background:#1f2a36;
-  overflow:hidden;
-  margin-top:10px;
-}
-
-.progress-fill{
-  height:100%;
-  background:var(--accent);
-}
-
-.footer{
+.timer{
+  font-size:28px;
+  font-weight:700;
   text-align:center;
-  font-size:12px;
-  color:var(--muted);
-  margin-top:20px;
+  margin:10px 0;
 }
+.progress{
+  font-size:14px;
+  opacity:.6;
+}
+.green{color:#1ec97f}
+.amber{color:#ffb020}
+.red{color:#ff3b3b}
 </style>
 </head>
+
 <body>
+
+<header>
+  PRDV Tactical V15
+  <div id="countdown"></div>
+</header>
 
 <div class="container">
 
-<div class="header">
-  <div class="brand">PRDV Tactical V14</div>
-  <div class="countdown" id="countdown"></div>
-</div>
-
-<div class="date-nav">
-  <button onclick="changeDate(-1)">◀</button>
-  <div id="dateDisplay"></div>
-  <button onclick="changeDate(1)">▶</button>
-</div>
-
 <div class="card">
-  <h2 id="weekTitle"></h2>
-  <div class="muted" id="phaseLabel"></div>
-  <br>
-  <span id="readinessBadge" class="badge green">GREEN</span>
-</div>
-
-<div class="card">
-  <h2>Readiness Check</h2>
-  <input id="sleep" placeholder="Sleep (1-5)">
-  <input id="soreness" placeholder="Soreness (1-5)">
-  <input id="stress" placeholder="Stress (1-5)">
-  <button class="btn" onclick="calculateReadiness()">Update Readiness</button>
-</div>
-
-<div class="card">
-  <h2 id="sessionTitle"></h2>
-  <div id="exerciseContainer"></div>
-  <button class="btn" onclick="saveSession()">Save Session</button>
-</div>
-
-<div class="card">
-  <h2>Load Analytics</h2>
-  <div id="acwrLabel"></div>
-  <div class="progress-bar">
-    <div id="acwrBar" class="progress-fill"></div>
+  <div class="date-nav">
+    <button class="small-btn" onclick="changeDate(-1)">◀</button>
+    <div id="currentDate"></div>
+    <button class="small-btn" onclick="changeDate(1)">▶</button>
   </div>
 </div>
 
-<div class="footer">
-Elite Performance Engine • Saves locally
+<div class="card">
+  <h3>Readiness</h3>
+  <input id="sleep" placeholder="Sleep (1-5)">
+  <input id="soreness" placeholder="Soreness (1-5)">
+  <input id="stress" placeholder="Stress (1-5)">
+  <button onclick="updateReadiness()">Update</button>
+  <div id="readinessStatus"></div>
+</div>
+
+<div id="workoutContainer"></div>
+
+<div class="card">
+  <button onclick="saveSession()">Save Session</button>
+</div>
+
+<div class="card">
+  <h3>History</h3>
+  <div id="history"></div>
 </div>
 
 </div>
 
 <script>
 
+const PRDV_DATE = new Date("2026-04-27");
 let selectedDate = new Date();
-const startDate = new Date("2026-02-17");
-const endDate = new Date("2026-04-27");
 
-function formatDate(d){
-  return d.toLocaleDateString("en-GB",{weekday:"long",day:"numeric",month:"long",year:"numeric"});
+function updateCountdown(){
+  const diff = Math.ceil((PRDV_DATE - new Date())/(1000*60*60*24));
+  document.getElementById("countdown").innerText = diff+" days";
+}
+updateCountdown();
+
+function formatDate(date){
+  return date.toDateString();
 }
 
-function changeDate(offset){
-  selectedDate.setDate(selectedDate.getDate()+offset);
-  render();
+function changeDate(dir){
+  selectedDate.setDate(selectedDate.getDate()+dir);
+  renderDate();
 }
 
-function getWeek(){
-  const diff = Math.floor((selectedDate-startDate)/(1000*60*60*24));
-  return Math.max(1,Math.floor(diff/7)+1);
+function renderDate(){
+  document.getElementById("currentDate").innerText = formatDate(selectedDate);
+  renderWorkout();
+  loadHistory();
 }
-
-function getPhase(w){
-  if(w<=3) return "Base Phase";
-  if(w<=6) return "Build Phase";
-  return "Elite Phase";
-}
+renderDate();
 
 function getWorkout(){
   const day = selectedDate.getDay();
-  const week = getWeek();
+  const twoKm = parseInt(localStorage.getItem("twoKm"))||470;
+  const split = (twoKm/5).toFixed(1);
 
-  if(day===1) return {title:"Lower Unilateral Strength",ex:["Bulgarian Split Squat 4x8","Single Leg RDL 4x8","Lateral Lunge 3x10","Soleus Raise 4x12"]};
-  if(day===2) return {title:"VO2 Intervals",ex:[week<=3?"6 x 400m":week<=6?"7 x 400m":"8 x 400m","90s Rest"]};
-  if(day===3) return {title:"Upper Strength",ex:["Pull Ups 4xMax","Row 4x6","DB Bench 4x8"]};
-  if(day===4) return {title:"Tempo Run",ex:["2km Warm","3 x 1km","Cool Down"]};
-  if(day===5) return {title:"Power Conditioning",ex:["400m Ski","20 Wall Balls","400m Row"]};
-  if(day===6) return {title:"Long Z2",ex:[week<=3?"70min":week<=6?"80min":"90min"]};
-  return {title:"Recovery",ex:["Mobility 20min"]};
-}
+  if(day===2){
+    return {
+      title:"VO2 Intervals",
+      exercises:[
+        {name:"400m Run", sets:6, target:split+" sec", rest:90},
+      ]
+    }
+  }
 
-function render(){
-  document.getElementById("dateDisplay").innerText = formatDate(selectedDate);
-  const w = getWeek();
-  document.getElementById("weekTitle").innerText="Week "+w+"/10";
-  document.getElementById("phaseLabel").innerText=getPhase(w);
+  if(day===1){
+    return {
+      title:"Lower Body Strength",
+      exercises:[
+        {name:"Bulgarian Split Squat", sets:4, target:"8 reps each leg", rest:90},
+        {name:"Single Leg RDL", sets:4, target:"8 reps", rest:90}
+      ]
+    }
+  }
 
-  const workout=getWorkout();
-  document.getElementById("sessionTitle").innerText=workout.title;
-
-  const container=document.getElementById("exerciseContainer");
-  container.innerHTML="";
-  workout.ex.forEach(e=>{
-    container.innerHTML+=`
-      <div class="exercise">
-        ${e}
-        <input placeholder="Load / Reps / Time">
-      </div>
-    `;
-  });
-
-  updateCountdown();
-  updateAnalytics();
-}
-
-function calculateReadiness(){
-  const sleep=Number(document.getElementById("sleep").value||3);
-  const sore=Number(document.getElementById("soreness").value||3);
-  const stress=Number(document.getElementById("stress").value||3);
-
-  const score = (sleep*2 - sore - stress)+5;
-
-  const badge=document.getElementById("readinessBadge");
-
-  if(score>=7){
-    badge.innerText="GREEN";
-    badge.className="badge green";
-  } else if(score>=4){
-    badge.innerText="AMBER";
-    badge.className="badge amber";
-  } else{
-    badge.innerText="RED";
-    badge.className="badge red";
+  return {
+    title:"Zone 2 Conditioning",
+    exercises:[
+      {name:"Steady Run", sets:1, target:"70-90 min Z2", rest:0}
+    ]
   }
 }
 
+function renderWorkout(){
+  const data = getWorkout();
+  const container = document.getElementById("workoutContainer");
+  container.innerHTML="";
+
+  const card = document.createElement("div");
+  card.className="card";
+  card.innerHTML="<h2>"+data.title+"</h2>";
+  container.appendChild(card);
+
+  data.exercises.forEach((ex,i)=>{
+    const div = document.createElement("div");
+    div.className="exercise";
+    div.innerHTML=`
+      <h4>${ex.name}</h4>
+      <div class="progress">Target: ${ex.target} | Rest: ${ex.rest}s</div>
+      <input id="weight${i}" placeholder="Weight">
+      <input id="reps${i}" placeholder="Reps / Time / Distance">
+      <div class="timer" id="timer${i}">00:00</div>
+      <button onclick="startTimer(${i},${ex.rest})">Start</button>
+    `;
+    card.appendChild(div);
+  });
+}
+
+let timers={};
+
+function startTimer(i,rest){
+  let seconds=0;
+  const display=document.getElementById("timer"+i);
+  clearInterval(timers[i]);
+  timers[i]=setInterval(()=>{
+    seconds++;
+    display.innerText=formatTime(seconds);
+  },1000);
+
+  if(rest>0){
+    setTimeout(()=>{
+      alert("Rest period begins");
+    },1000);
+  }
+}
+
+function formatTime(sec){
+  let m=Math.floor(sec/60);
+  let s=sec%60;
+  return (m<10?"0":"")+m+":"+(s<10?"0":"")+s;
+}
+
+function updateReadiness(){
+  const sleep=parseInt(sleep.value)||3;
+  const sore=parseInt(soreness.value)||3;
+  const stress=parseInt(stress.value)||3;
+  const score = sleep + (6-sore) + (6-stress);
+  let state="GREEN";
+  if(score<8) state="RED";
+  else if(score<12) state="AMBER";
+  document.getElementById("readinessStatus").innerHTML=
+    "<div class='"+state.toLowerCase()+"'>"+state+" ("+score+")</div>";
+}
+
 function saveSession(){
-  const load=Math.floor(Math.random()*100)+50;
-  const sessions=JSON.parse(localStorage.getItem("sessions")||"[]");
-  sessions.push({date:selectedDate.toDateString(),load});
-  localStorage.setItem("sessions",JSON.stringify(sessions));
-  alert("Session saved. Load: "+load);
-  updateAnalytics();
+  const key="session-"+selectedDate.toDateString();
+  const workout=getWorkout();
+  let record={date:selectedDate.toDateString(),workout:workout.title,logs:[]};
+
+  workout.exercises.forEach((ex,i)=>{
+    record.logs.push({
+      exercise:ex.name,
+      weight:document.getElementById("weight"+i).value,
+      reps:document.getElementById("reps"+i).value
+    });
+  });
+
+  localStorage.setItem(key,JSON.stringify(record));
+  alert("Session saved");
+  loadHistory();
 }
 
-function updateAnalytics(){
-  const sessions=JSON.parse(localStorage.getItem("sessions")||"[]");
-  const last7=sessions.slice(-7).reduce((a,b)=>a+b.load,0);
-  const last28=sessions.slice(-28).reduce((a,b)=>a+b.load,0);
-
-  const acwr = last28? (last7/(last28/4)).toFixed(2):0;
-
-  document.getElementById("acwrLabel").innerText="Acute:Chronic Ratio: "+acwr;
-
-  const bar=document.getElementById("acwrBar");
-  bar.style.width=Math.min(acwr*50,100)+"%";
+function loadHistory(){
+  const history=document.getElementById("history");
+  history.innerHTML="";
+  for(let i=0;i<localStorage.length;i++){
+    const key=localStorage.key(i);
+    if(key.startsWith("session-")){
+      const data=JSON.parse(localStorage.getItem(key));
+      history.innerHTML+=`
+        <div class="progress">${data.date} – ${data.workout}</div>
+      `;
+    }
+  }
 }
-
-function updateCountdown(){
-  const today=new Date();
-  const diff=Math.ceil((endDate-today)/(1000*60*60*24));
-  document.getElementById("countdown").innerText=diff+" days to PRDV";
-}
-
-render();
 
 </script>
 
