@@ -1,69 +1,345 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>PRDV Tactical OS V11</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="theme-color" content="#0b0f17">
-  <link rel="stylesheet" href="style.css">
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PRDV Tactical V13</title>
+
+<style>
+:root{
+  --bg:#0c1118;
+  --card:#131b25;
+  --card2:#0f1720;
+  --accent:#22c55e;
+  --accent-soft:#1a2e22;
+  --text:#e6edf3;
+  --muted:#8b98a5;
+  --danger:#ef4444;
+}
+
+*{box-sizing:border-box}
+body{
+  margin:0;
+  background:var(--bg);
+  font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto;
+  color:var(--text);
+}
+
+.container{
+  max-width:720px;
+  margin:auto;
+  padding:20px;
+}
+
+/* HEADER */
+.header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:20px;
+}
+
+.brand{
+  font-weight:700;
+  font-size:18px;
+  color:var(--accent);
+}
+
+.countdown{
+  font-size:14px;
+  color:var(--muted);
+}
+
+/* DATE NAV */
+.date-nav{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  background:var(--card);
+  padding:14px;
+  border-radius:16px;
+  margin-bottom:18px;
+}
+
+.date-nav button{
+  background:var(--card2);
+  border:none;
+  color:var(--text);
+  padding:8px 14px;
+  border-radius:10px;
+  font-size:16px;
+}
+
+.date-display{
+  text-align:center;
+  font-weight:600;
+}
+
+/* CARD */
+.card{
+  background:var(--card);
+  padding:18px;
+  border-radius:18px;
+  margin-bottom:20px;
+}
+
+.card h2{
+  margin-top:0;
+  margin-bottom:8px;
+}
+
+.muted{
+  color:var(--muted);
+  font-size:14px;
+}
+
+/* WORKOUT LIST */
+.exercise{
+  margin-bottom:18px;
+  padding:12px;
+  background:var(--card2);
+  border-radius:14px;
+}
+
+.exercise h3{
+  margin:0 0 8px 0;
+  font-size:16px;
+}
+
+input{
+  width:100%;
+  padding:10px;
+  margin-top:6px;
+  border-radius:10px;
+  border:1px solid #243041;
+  background:#0c141c;
+  color:white;
+}
+
+/* BUTTON */
+.btn{
+  width:100%;
+  padding:14px;
+  border:none;
+  border-radius:14px;
+  font-weight:600;
+  margin-top:10px;
+}
+
+.btn-green{
+  background:var(--accent);
+  color:black;
+}
+
+.badge{
+  display:inline-block;
+  padding:6px 10px;
+  border-radius:8px;
+  font-size:12px;
+  font-weight:600;
+}
+
+.green{ background:#1e3a2a; color:#22c55e; }
+.amber{ background:#3a2e1e; color:#f59e0b; }
+.red{ background:#3a1e1e; color:#ef4444; }
+
+.footer{
+  text-align:center;
+  font-size:12px;
+  color:var(--muted);
+  margin-top:20px;
+}
+</style>
 </head>
 <body>
 
-<div class="app">
+<div class="container">
 
-  <header class="header">
-    <div class="logo">🪖 PRDV Tactical V11</div>
-    <div>
-      <button onclick="toggleOperatorMode()">Operator</button>
-    </div>
-  </header>
-
-  <div id="countdown" class="countdown"></div>
-
-  <!-- DAY NAVIGATION -->
-  <div class="nav-days">
-    <button onclick="changeDay(-1)">◀</button>
-    <div id="dayLabel"></div>
-    <button onclick="changeDay(1)">▶</button>
+  <div class="header">
+    <div class="brand">PRDV Tactical V13</div>
+    <div class="countdown" id="countdown"></div>
   </div>
 
-  <!-- TODAY WORKOUT -->
-  <div id="todayWorkout"></div>
-
-  <!-- LOGGING -->
-  <div class="card">
-    <div class="metric-title">Log Session</div>
-    <div id="exerciseInputs"></div>
-    <button class="primary" onclick="saveSession()">Save Session</button>
-  </div>
-
-  <!-- METRICS -->
-  <div class="card">
-    <div class="metric-title">Selection Readiness Index</div>
-    <div class="metric-value" id="sriValue">0</div>
-    <div class="progress"><div id="sriBar" class="progress-fill"></div></div>
-    <div id="sriStatus" class="metric-sub"></div>
+  <div class="date-nav">
+    <button onclick="changeDate(-1)">◀</button>
+    <div class="date-display" id="dateDisplay"></div>
+    <button onclick="changeDate(1)">▶</button>
   </div>
 
   <div class="card">
-    <div class="metric-title">Selection Probability</div>
-    <div class="metric-value" id="selectionValue">0%</div>
-    <div class="progress"><div id="selectionBar" class="progress-fill"></div></div>
+    <h2 id="weekTitle"></h2>
+    <div class="muted" id="phaseLabel"></div>
+    <br>
+    <span class="badge green" id="readinessBadge">GREEN</span>
   </div>
 
   <div class="card">
-    <div class="metric-title">Load Ratio</div>
-    <div class="metric-value" id="loadValue">0</div>
-    <div class="progress"><div id="loadBar" class="progress-fill"></div></div>
-    <div id="loadWarning" class="metric-sub"></div>
+    <h2 id="sessionTitle"></h2>
+    <div id="exerciseContainer"></div>
+    <button class="btn btn-green" onclick="saveSession()">Save Session</button>
   </div>
 
-  <div class="card">
-    <canvas id="loadChart"></canvas>
+  <div class="footer">
+    PRDV Tactical Engine • Elite Build
   </div>
 
 </div>
 
-<script src="script.js"></script>
+<script>
+
+/* ===== DATE SYSTEM ===== */
+
+let selectedDate = new Date();
+
+function formatDate(d){
+  return d.toLocaleDateString("en-GB",{
+    weekday:"long",
+    day:"numeric",
+    month:"long",
+    year:"numeric"
+  });
+}
+
+function changeDate(offset){
+  selectedDate.setDate(selectedDate.getDate()+offset);
+  render();
+}
+
+/* ===== PROGRAM LOGIC ===== */
+
+const startDate = new Date("2026-02-17");
+const endDate = new Date("2026-04-27");
+
+function getWeek(){
+  const diff = Math.floor((selectedDate-startDate)/(1000*60*60*24));
+  return Math.max(1,Math.floor(diff/7)+1);
+}
+
+function getPhase(week){
+  if(week<=3) return "Base Phase";
+  if(week<=6) return "Build Phase";
+  return "Elite Phase";
+}
+
+function getWorkout(){
+  const day = selectedDate.getDay();
+  const week = getWeek();
+
+  if(day===1) return {
+    title:"Lower Body – Unilateral Strength",
+    exercises:[
+      "Bulgarian Split Squat 4x8",
+      "Single Leg RDL 4x8",
+      "Lateral Lunge 3x10",
+      "Soleus Raise 4x12"
+    ]
+  };
+
+  if(day===2) return {
+    title:"VO2 Intervals",
+    exercises:[
+      week<=3?"6 x 400m @ 2km pace":
+      week<=6?"7 x 400m @ 2km pace":
+      "8 x 400m @ 2km pace",
+      "90s Rest Between"
+    ]
+  };
+
+  if(day===3) return {
+    title:"Upper Strength",
+    exercises:[
+      "Pull Ups 4xMax",
+      "Barbell Row 4x6",
+      "DB Bench 4x8",
+      "Core Circuit"
+    ]
+  };
+
+  if(day===4) return {
+    title:"Tempo Run",
+    exercises:[
+      "2km Warm Up",
+      "3 x 1km Tempo",
+      "2min Float",
+      "1km Cool Down"
+    ]
+  };
+
+  if(day===5) return {
+    title:"Power Conditioning",
+    exercises:[
+      "3 Rounds:",
+      "400m Ski",
+      "20 Wall Balls",
+      "400m Row"
+    ]
+  };
+
+  if(day===6) return {
+    title:"Long Zone 2",
+    exercises:[
+      week<=3?"70min Z2":
+      week<=6?"80min Z2":
+      "90min Z2"
+    ]
+  };
+
+  return {
+    title:"Recovery + Mobility",
+    exercises:[
+      "20min Mobility",
+      "Stretch & Breathwork"
+    ]
+  };
+}
+
+/* ===== RENDER ===== */
+
+function render(){
+
+  document.getElementById("dateDisplay").innerText = formatDate(selectedDate);
+
+  const week = getWeek();
+  document.getElementById("weekTitle").innerText = "Week "+week+"/10";
+  document.getElementById("phaseLabel").innerText = getPhase(week);
+
+  const workout = getWorkout();
+  document.getElementById("sessionTitle").innerText = workout.title;
+
+  const container = document.getElementById("exerciseContainer");
+  container.innerHTML="";
+
+  workout.exercises.forEach(ex=>{
+    container.innerHTML+=`
+      <div class="exercise">
+        <h3>${ex}</h3>
+        <input placeholder="Log load / reps / time">
+      </div>
+    `;
+  });
+
+  updateCountdown();
+}
+
+/* ===== SAVE ===== */
+
+function saveSession(){
+  alert("Session saved for "+formatDate(selectedDate));
+}
+
+/* ===== COUNTDOWN ===== */
+
+function updateCountdown(){
+  const today = new Date();
+  const diff = Math.ceil((endDate-today)/(1000*60*60*24));
+  document.getElementById("countdown").innerText =
+    diff+" days to PRDV";
+}
+
+/* INIT */
+render();
+
+</script>
+
 </body>
 </html>
