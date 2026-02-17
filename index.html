@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>PRDV Tactical OS – V10 Elite</title>
+  <title>PRDV Tactical OS V11</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#0b0f17">
   <link rel="stylesheet" href="style.css">
@@ -12,19 +12,28 @@
 <div class="app">
 
   <header class="header">
-    <div class="logo">🪖 PRDV Tactical V10</div>
-    <div id="countdown"></div>
+    <div class="logo">🪖 PRDV Tactical V11</div>
+    <div>
+      <button onclick="toggleOperatorMode()">Operator</button>
+    </div>
   </header>
+
+  <div id="countdown" class="countdown"></div>
+
+  <!-- DAY NAVIGATION -->
+  <div class="nav-days">
+    <button onclick="changeDay(-1)">◀</button>
+    <div id="dayLabel"></div>
+    <button onclick="changeDay(1)">▶</button>
+  </div>
 
   <!-- TODAY WORKOUT -->
   <div id="todayWorkout"></div>
 
-  <!-- SESSION LOG -->
+  <!-- LOGGING -->
   <div class="card">
-    <div class="metric-title">Log Today’s Session</div>
-
+    <div class="metric-title">Log Session</div>
     <div id="exerciseInputs"></div>
-
     <button class="primary" onclick="saveSession()">Save Session</button>
   </div>
 
@@ -32,24 +41,24 @@
   <div class="card">
     <div class="metric-title">Selection Readiness Index</div>
     <div class="metric-value" id="sriValue">0</div>
-    <div class="progress">
-      <div id="sriBar" class="progress-fill"></div>
-    </div>
+    <div class="progress"><div id="sriBar" class="progress-fill"></div></div>
     <div id="sriStatus" class="metric-sub"></div>
   </div>
 
   <div class="card">
-    <div class="metric-title">Acute:Chronic Load</div>
+    <div class="metric-title">Selection Probability</div>
+    <div class="metric-value" id="selectionValue">0%</div>
+    <div class="progress"><div id="selectionBar" class="progress-fill"></div></div>
+  </div>
+
+  <div class="card">
+    <div class="metric-title">Load Ratio</div>
     <div class="metric-value" id="loadValue">0</div>
-    <div class="progress">
-      <div id="loadBar" class="progress-fill"></div>
-    </div>
+    <div class="progress"><div id="loadBar" class="progress-fill"></div></div>
     <div id="loadWarning" class="metric-sub"></div>
   </div>
 
-  <!-- CHART -->
   <div class="card">
-    <div class="metric-title">Load Trend</div>
     <canvas id="loadChart"></canvas>
   </div>
 
