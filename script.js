@@ -16,10 +16,7 @@ import {
 import {
   getFirestore,
   collection,
-  addDoc,
-  getDocs,
-  query,
-  orderBy
+  addDoc
 } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
 
 /* ===============================
@@ -32,7 +29,8 @@ const firebaseConfig = {
   projectId: "prdv-platform",
   storageBucket: "prdv-platform.firebasestorage.app",
   messagingSenderId: "578412239135",
-  appId: "1:578412239135:web:7680746ea4df63246df82a"
+  appId: "1:578412239135:web:7680746ea4df63246df82a",
+  measurementId: "G-T4KJ9P53GZ"
 };
 
 const app = initializeApp(firebaseConfig);
@@ -52,6 +50,7 @@ window.register = async () => {
       email.value,
       password.value
     );
+    alert("Account created.");
   } catch (e) {
     alert(e.message);
   }
@@ -64,6 +63,7 @@ window.login = async () => {
       email.value,
       password.value
     );
+    alert("Login successful.");
   } catch (e) {
     alert(e.message);
   }
@@ -71,6 +71,7 @@ window.login = async () => {
 
 window.logout = async () => {
   await signOut(auth);
+  alert("Logged out.");
 };
 
 /* ===============================
@@ -80,21 +81,18 @@ window.logout = async () => {
 onAuthStateChanged(auth, (user) => {
 
   const status = document.getElementById("userStatus");
-
   if (!status) return;
 
   if (user) {
-    status.innerHTML = `
-      <span style="color:#10b981;font-weight:600;">
+    status.innerHTML =
+      `<span style="color:#10b981;font-weight:600;">
         Logged in as ${user.email}
-      </span>
-    `;
+      </span>`;
   } else {
-    status.innerHTML = `
-      <span style="color:#ef4444;">
+    status.innerHTML =
+      `<span style="color:#ef4444;font-weight:600;">
         Not logged in
-      </span>
-    `;
+      </span>`;
   }
 });
 
@@ -224,16 +222,20 @@ window.savePerformance = async function () {
   const user = auth.currentUser;
 
   if (user) {
-    await addDoc(collection(db, "users", user.uid, "sessions"), {
-      push,
-      pull,
-      fatigue,
-      sleep,
-      twoKm,
-      xp,
-      rank,
-      timestamp: Date.now()
-    });
+    try {
+      await addDoc(collection(db, "users", user.uid, "sessions"), {
+        push,
+        pull,
+        fatigue,
+        sleep,
+        twoKm,
+        xp,
+        rank,
+        timestamp: Date.now()
+      });
+    } catch (e) {
+      console.log("Firestore save failed:", e.message);
+    }
   }
 
   renderDashboard({ xp, rank, state, workout, selection });
@@ -256,4 +258,12 @@ window.onload = function () {
   const selection = selectionProbability(push, pull, twoKm);
 
   renderDashboard({ xp, rank, state, workout, selection });
+};
+
+/* ===============================
+   OPERATOR MODE
+================================ */
+
+window.toggleOperatorMode = function () {
+  document.body.classList.toggle("operator");
 };
