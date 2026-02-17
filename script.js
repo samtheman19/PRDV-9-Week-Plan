@@ -1,283 +1,215 @@
-const TARGET_DATE = new Date("2026-04-27");
-let offsetDay = 0;
+const START_DATE = new Date();
+const PEAK_DATE = new Date("2026-04-27");
 
-let loadHistory = JSON.parse(localStorage.getItem("loadHistory")) || [];
-let streak = parseInt(localStorage.getItem("streak")) || 0;
+let selectedDate = new Date();
 
-const BASE_2KM = 470;
+/* =============================
+   DATE ENGINE
+============================= */
 
-/* ===============================
-   PROGRAM ENGINE
-================================ */
-
-function getProgramStart(){
-  if(!localStorage.getItem("programStart")){
-    localStorage.setItem("programStart", Date.now());
-  }
-  return new Date(parseInt(localStorage.getItem("programStart")));
+function formatDate(date){
+  return date.toDateString();
 }
 
-function getCurrentWeek(){
-  const start = getProgramStart();
-  const diff = Math.floor((new Date()-start)/(1000*60*60*24));
-  return Math.min(Math.floor(diff/7)+1,10);
+function getDaysBetween(a,b){
+  return Math.floor((b-a)/(1000*60*60*24));
 }
+
+function getWeekNumber(date){
+  const days = getDaysBetween(START_DATE,date);
+  return Math.max(1,Math.floor(days/7)+1);
+}
+
+function changeDay(offset){
+  selectedDate.setDate(selectedDate.getDate()+offset);
+  render();
+}
+
+function goToToday(){
+  selectedDate = new Date();
+  render();
+}
+
+/* =============================
+   PHASE ENGINE
+============================= */
 
 function getPhase(week){
-  if(week<=3) return "Base";
-  if(week<=6) return "Build";
-  if(week<=8) return "Peak";
-  return "Taper";
+  if(week<=4) return "Foundation Phase";
+  if(week<=8) return "Build Phase";
+  return "Peak Phase";
 }
 
-function get400Split(twoKm){
-  return (twoKm/5).toFixed(1);
+/* =============================
+   2KM TARGET ENGINE
+============================= */
+
+function getTargetPace(){
+  const weeksLeft = 16 - getWeekNumber(selectedDate);
+  const base = 470; // 7:50
+  return base - (weeksLeft*3);
 }
 
-/* ===============================
+/* =============================
    WORKOUT GENERATOR
-================================ */
+============================= */
 
-function generateWorkout(date){
+function getWorkoutForDate(date){
 
-  const week = getCurrentWeek();
-  const phase = getPhase(week);
+  const week = getWeekNumber(date);
   const day = date.getDay();
-  const twoKm = parseInt(localStorage.getItem("twoKm")) || BASE_2KM;
-  const split = get400Split(twoKm);
 
-  if(day===0) return ["Rest + Mobility 20min"];
+  const split = (getTargetPace()/5).toFixed(1);
 
-  if(day===1) return [
-    "Bulgarian Split Squat 4x8",
-    "Single Leg RDL 4x8",
-    "Pull Ups 4x max"
-  ];
+  if(day===0){
+    return {
+      type:"Recovery",
+      exercises:[
+        {name:"Mobility Flow",sets:"20min"},
+        {name:"Zone 2 Run",sets:"40min"}
+      ]
+    };
+  }
+
+  if(day===1){
+    return {
+      type:"Lower Strength",
+      exercises:[
+        {name:"Bulgarian Split Squat",sets:"4x8"},
+        {name:"Single Leg RDL",sets:"4x8"},
+        {name:"Skater Squat",sets:"3x8"},
+        {name:"Soleus Raise",sets:"3x15"}
+      ]
+    };
+  }
 
   if(day===2){
-    const reps = week<=3?6:week<=6?7:8;
-    return [`${reps} x 400m @ ${split}s`, "90 sec rest"];
+    return {
+      type:"VO2 Max",
+      exercises:[
+        {name:`400m Intervals`,sets:`6-8 reps @ ${split}s`}
+      ]
+    };
   }
 
-  if(day===3) return [
-    "DB Bench 4x8",
-    "Barbell Row 4x6",
-    "Core Circuit"
-  ];
+  if(day===3){
+    return {
+      type:"Upper Strength",
+      exercises:[
+        {name:"Pull Ups",sets:"4xMax"},
+        {name:"Barbell Row",sets:"4x6"},
+        {name:"DB Bench",sets:"4x8"}
+      ]
+    };
+  }
 
-  if(day===4) return ["Tempo 3 x 1km"];
+  if(day===4){
+    return {
+      type:"Tempo",
+      exercises:[
+        {name:"3x1km Tempo",sets:"2min float recovery"}
+      ]
+    };
+  }
 
-  if(day===5) return ["Conditioning Circuit"];
+  if(day===5){
+    return {
+      type:"Conditioning",
+      exercises:[
+        {name:"400m Ski",sets:"3 rounds"},
+        {name:"20 Wall Balls",sets:"3 rounds"},
+        {name:"400m Row",sets:"3 rounds"}
+      ]
+    };
+  }
 
   if(day===6){
-    const mins = week<=3?70:week<=6?80:90;
-    return [`Long Zone 2 ${mins}min`];
+    return {
+      type:"Long Run",
+      exercises:[
+        {name:"Zone 2 Run",sets:"70–90min"}
+      ]
+    };
   }
 }
 
-/* ===============================
-   LOAD CALCULATION
-================================ */
+/* =============================
+   RENDER ENGINE
+============================= */
 
-function calculateLoad(){
-  const rows = document.querySelectorAll(".exercise-row");
-  let total = 0;
-  rows.forEach(r=>{
-    const inputs = r.querySelectorAll("input");
-    const load = parseFloat(inputs[0].value)||0;
-    const reps = parseFloat(inputs[1].value)||0;
-    total += load*reps;
-  });
-  return total;
-}
+function render(){
 
-/* ===============================
-   ADVANCED METRICS
-================================ */
+  document.getElementById("dateDisplay").innerText =
+    formatDate(selectedDate);
 
-function getAcuteLoad(){
-  return loadHistory.slice(-7).reduce((a,b)=>a+b,0);
-}
-
-function getChronicLoad(){
-  if(loadHistory.length===0) return 1;
-  return loadHistory.reduce((a,b)=>a+b,0)/loadHistory.length;
-}
-
-function getLoadRatio(){
-  return getAcuteLoad()/(getChronicLoad()||1);
-}
-
-function calculateSRI(){
-  const ratio = getLoadRatio();
-  return Math.round(100 - Math.abs(1-ratio)*40);
-}
-
-/* ===============================
-   ADAPTIVE VOLUME ENGINE
-================================ */
-
-function volumeAdjustment(){
-  const ratio = getLoadRatio();
-
-  if(ratio > 1.6) return "⚠ DELoad Recommended (-20%)";
-  if(ratio > 1.3) return "Reduce Volume (-10%)";
-  if(ratio < 0.8) return "Increase Volume (+10%)";
-  return "Maintain Volume";
-}
-
-/* ===============================
-   2KM PROJECTION ENGINE
-================================ */
-
-function projected2KM(){
-
-  const twoKm = parseInt(localStorage.getItem("twoKm")) || BASE_2KM;
-  const sri = calculateSRI();
-  const ratio = getLoadRatio();
-
-  let improvement = 0;
-
-  if(sri > 75) improvement += 5;
-  if(ratio >= 0.9 && ratio <= 1.3) improvement += 5;
-  if(streak >= 5) improvement += 5;
-
-  return Math.max(twoKm - improvement, 410);
-}
-
-/* ===============================
-   SELECTION PROBABILITY v2
-================================ */
-
-function calculateSelection(){
-
-  const twoKm = projected2KM();
-  const ratio = getLoadRatio();
-
-  let prob = 40;
-
-  if(twoKm < 450) prob += 20;
-  if(twoKm < 430) prob += 10;
-  if(ratio >= 0.9 && ratio <= 1.3) prob += 10;
-  if(streak >= 7) prob += 10;
-
-  return Math.min(prob, 98);
-}
-
-/* ===============================
-   SESSION SAVE
-================================ */
-
-function saveSession(){
-
-  const load = calculateLoad();
-  loadHistory.push(load);
-  if(loadHistory.length > 28) loadHistory.shift();
-  localStorage.setItem("loadHistory", JSON.stringify(loadHistory));
-
-  streak++;
-  localStorage.setItem("streak", streak);
-
-  updateMetrics();
-}
-
-/* ===============================
-   UI RENDER
-================================ */
-
-function renderWorkout(){
-  const today = new Date();
-  today.setDate(today.getDate()+offsetDay);
-
-  const week = getCurrentWeek();
+  const week = getWeekNumber(selectedDate);
   const phase = getPhase(week);
-  const exercises = generateWorkout(today);
 
-  dayLabel.innerText =
-    today.toDateString() + ` (Week ${week} - ${phase})`;
+  document.getElementById("phaseBanner").innerHTML =
+    `<div class="phase">${phase} • Week ${week}</div>`;
 
-  todayWorkout.innerHTML = `
-    <div class="card">
-      <div class="metric-title">Today's Mission</div>
-      ${exercises.map(e=>`<div>${e}</div>`).join("")}
-    </div>
-  `;
+  const workout = getWorkoutForDate(selectedDate);
 
-  renderInputs(exercises);
+  const container = document.getElementById("workoutContainer");
+  container.innerHTML = "";
+
+  workout.exercises.forEach(ex=>{
+    container.innerHTML += `
+      <div class="exercise-block">
+        <div class="exercise-title">${ex.name}</div>
+        <div>${ex.sets}</div>
+      </div>
+    `;
+  });
+
+  buildTrackingInputs(workout);
 }
 
-function renderInputs(exercises){
-  exerciseInputs.innerHTML="";
-  exercises.forEach(e=>{
-    exerciseInputs.innerHTML+=`
-      <div class="exercise-row">
-        <span>${e}</span>
-        <input placeholder="Load">
-        <input placeholder="Reps">
+/* =============================
+   TRACKING
+============================= */
+
+function buildTrackingInputs(workout){
+
+  const box = document.getElementById("exerciseInputs");
+  box.innerHTML = "";
+
+  workout.exercises.forEach(ex=>{
+    box.innerHTML += `
+      <div class="exercise-block">
+        <div class="exercise-title">${ex.name}</div>
+        <input placeholder="Weight Used">
+        <input placeholder="Reps Completed">
+        <input placeholder="RPE">
       </div>
     `;
   });
 }
 
-function updateMetrics(){
-
-  const sri = calculateSRI();
-  sriValue.innerText = sri;
-  sriBar.style.width = sri+"%";
-  sriStatus.innerText = sri>75?"GREEN":
-                        sri>55?"AMBER":"RED";
-
-  const selection = calculateSelection();
-  selectionValue.innerText = selection+"%";
-  selectionBar.style.width = selection+"%";
-
-  const ratio = getLoadRatio();
-  loadValue.innerText = ratio.toFixed(2);
-  loadBar.style.width = Math.min(ratio*50,100)+"%";
-
-  loadWarning.innerText = volumeAdjustment();
-
-  renderIntelligencePanel();
+function saveSession(){
+  alert("Session Saved ✔");
 }
 
-function renderIntelligencePanel(){
+/* =============================
+   RECOVERY + SELECTION
+============================= */
 
-  const projection = projected2KM();
-  const adjustment = volumeAdjustment();
+function updateRecovery(){
 
-  todayWorkout.innerHTML += `
-    <div class="card">
-      <div class="metric-title">Warfighter Intelligence</div>
-      <div>Projected 2KM: ${projection}s</div>
-      <div>Streak: ${streak} days</div>
-      <div>Volume Adjustment: ${adjustment}</div>
-    </div>
-  `;
+  const sleep = parseFloat(document.getElementById("sleepInput").value)||7;
+  const fatigue = parseInt(document.getElementById("fatigueInput").value)||5;
+
+  const score = (sleep*10)-(fatigue*5);
+
+  document.getElementById("recoveryOutput").innerText =
+    "Recovery Score: "+score;
+
+  document.getElementById("selectionScore").innerText =
+    "Selection Probability: "+Math.min(95,50+score)+"%";
 }
 
-/* ===============================
-   NAVIGATION
-================================ */
-
-function changeDay(val){
-  offsetDay += val;
-  renderWorkout();
-}
-
-function toggleOperatorMode(){
-  document.body.classList.toggle("operator");
-}
-
-function updateCountdown(){
-  const diff = TARGET_DATE - new Date();
-  const days = Math.ceil(diff/(1000*60*60*24));
-  countdown.innerText = days + " days to Selection";
-}
-
-/* ===============================
+/* =============================
    INIT
-================================ */
+============================= */
 
-updateCountdown();
-renderWorkout();
-updateMetrics();
+render();
