@@ -2,45 +2,227 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PRDV Tactical Elite V44</title>
-<link rel="stylesheet" href="style.css">
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<title>PRDV Tactical Elite</title>
+<style>
+body{
+  font-family:-apple-system,BlinkMacSystemFont,sans-serif;
+  background:#0f172a;
+  color:white;
+  margin:0;
+  padding:20px;
+}
+h1{ text-align:center; }
+.card{
+  background:#1e293b;
+  padding:20px;
+  border-radius:16px;
+  margin-bottom:20px;
+}
+button{
+  padding:10px 16px;
+  border-radius:10px;
+  border:none;
+  font-weight:600;
+  cursor:pointer;
+}
+.primary{ background:#22c55e; color:black; }
+.secondary{ background:#334155; color:white; }
+.timer{
+  font-size:32px;
+  font-weight:bold;
+  margin:10px 0;
+}
+input{
+  width:100%;
+  padding:8px;
+  margin:6px 0;
+  border-radius:8px;
+  border:none;
+}
+.nav{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:20px;
+}
+.day-btn{
+  background:#334155;
+  padding:6px 10px;
+  border-radius:8px;
+  margin:2px;
+}
+.active{ background:#22c55e; color:black; }
+</style>
 </head>
 <body>
 
-<div class="header">PRDV Tactical Elite</div>
+<h1>PRDV Tactical Elite</h1>
 
 <div class="nav">
-  <button onclick="changeDay(-1)">◀</button>
+  <button class="secondary" onclick="changeDay(-1)">◀</button>
   <div id="dateDisplay"></div>
-  <button onclick="changeDay(1)">▶</button>
+  <button class="secondary" onclick="changeDay(1)">▶</button>
 </div>
 
-<div id="phaseInfo" class="card"></div>
-<div id="workoutContainer"></div>
+<div id="programCard" class="card"></div>
 
 <div class="card">
-  <h3>Update 2KM Time (seconds)</h3>
-  <input id="twoKmInput" placeholder="e.g. 470">
-  <button onclick="update2km()">Update</button>
-</div>
-
-<div class="card">
-  <h3>Weekly Calendar</h3>
-  <div id="calendarGrid"></div>
+  <h3>Session Logging</h3>
+  <input id="sets" placeholder="Sets">
+  <input id="reps" placeholder="Reps / Distance">
+  <input id="rpe" placeholder="RPE">
+  <button class="primary" onclick="saveSession()">Save Session</button>
 </div>
 
 <div class="card">
-  <h3>Progress</h3>
-  <canvas id="progressChart"></canvas>
+  <h3>Timer</h3>
+  <div class="timer" id="timerDisplay">00:00</div>
+  <button class="primary" onclick="startTimer()">Start</button>
+  <button class="secondary" onclick="resetTimer()">Reset</button>
 </div>
 
-<div class="card">
-  <h3>Selection Probability</h3>
-  <div id="selectionScore"></div>
-</div>
+<script>
 
-<script src="script.js"></script>
+const startDate = new Date("2026-02-17");
+const endDate = new Date("2026-04-29");
+let currentDate = new Date();
+
+let timer;
+let seconds = 0;
+
+function formatDate(d){
+  return d.toDateString();
+}
+
+function changeDay(offset){
+  currentDate.setDate(currentDate.getDate()+offset);
+  if(currentDate < startDate) currentDate = new Date(startDate);
+  if(currentDate > endDate) currentDate = new Date(endDate);
+  render();
+}
+
+function getWeekNumber(){
+  const diff = (currentDate - startDate)/(1000*60*60*24);
+  return Math.floor(diff/7)+1;
+}
+
+function getDayName(){
+  return currentDate.toLocaleDateString('en-US',{weekday:'long'});
+}
+
+function getPhase(week){
+  if(week<=3) return "Foundation";
+  if(week<=7) return "Build";
+  return "Peak";
+}
+
+function getWorkout(week, day){
+
+if(week<=3){
+
+if(day==="Tuesday"){
+  const base = 94-(week-1);
+  const reps = 6+(week-1);
+  return `${reps} x 400m @ ${base}s\nRest 90s`;
+}
+
+if(day==="Thursday"){
+  if(week===1) return "3 x 1km @ 250s/km\nRest 2 min";
+  return "4 x 1km @ 250s/km\nRest 2 min";
+}
+
+if(day==="Saturday"){
+  const mins = 70 + (week-1)*5;
+  return `${mins} min Z2 steady`;
+}
+
+}
+
+if(week>=4 && week<=7){
+
+if(day==="Tuesday") return "5 x 600m @ 2KM pace\nRest 2 min";
+if(day==="Thursday") return "4 x 1.2km\nRest 2 min";
+if(day==="Saturday") return "80–90 min Z2 steady";
+
+}
+
+if(week>=8){
+
+if(day==="Tuesday"){
+  if(currentDate >= new Date("2026-04-20"))
+    return "4 x 400m @ 88–90s\nFull recovery";
+  return "5 x 400m @ 88–90s\nFull recovery";
+}
+
+if(day==="Thursday"){
+  if(currentDate >= new Date("2026-04-20"))
+    return "1 x 1.5km @ race pace";
+  return "2 x 1.5km @ race pace +10s\nRest 3 min";
+}
+
+if(day==="Saturday"){
+  if(currentDate >= new Date("2026-04-20"))
+    return "45 min Z2";
+  return "60 min Z2";
+}
+
+}
+
+switch(day){
+case "Monday": return "Lower Power\nTrap Bar Jump\nHip Thrust\nStep Ups";
+case "Wednesday": return "Upper + Flush\nPull-ups\nBench\nRow\nZ2 20–30min";
+case "Friday": return "Lower Strength\nSquat\nRDL\nSplit Squat\nCalf";
+case "Sunday": return "Mobility 20–30min";
+default: return "Recovery";
+}
+
+}
+
+function render(){
+
+const week = getWeekNumber();
+const day = getDayName();
+const phase = getPhase(week);
+
+document.getElementById("dateDisplay").innerHTML =
+`Week ${week} • ${phase} • ${formatDate(currentDate)}`;
+
+document.getElementById("programCard").innerHTML =
+`<h3>${day}</h3><pre>${getWorkout(week, day)}</pre>`;
+
+}
+
+function saveSession(){
+  const data = {
+    date:currentDate,
+    sets:document.getElementById("sets").value,
+    reps:document.getElementById("reps").value,
+    rpe:document.getElementById("rpe").value
+  };
+  localStorage.setItem(currentDate,data);
+  alert("Session Saved");
+}
+
+function startTimer(){
+  clearInterval(timer);
+  timer = setInterval(()=>{
+    seconds++;
+    const m = Math.floor(seconds/60);
+    const s = seconds%60;
+    document.getElementById("timerDisplay").innerHTML =
+    `${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
+  },1000);
+}
+
+function resetTimer(){
+  clearInterval(timer);
+  seconds=0;
+  document.getElementById("timerDisplay").innerHTML="00:00";
+}
+
+render();
+
+</script>
+
 </body>
 </html>
