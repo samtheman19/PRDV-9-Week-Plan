@@ -1,51 +1,46 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>PRDV Tactical OS</title>
-  <link rel="stylesheet" href="style.css">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="theme-color" content="#000000">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PRDV Tactical Elite V44</title>
+<link rel="stylesheet" href="style.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
-
 <body>
 
-<div class="app">
+<div class="header">PRDV Tactical Elite</div>
 
-  <header>
-    <h1>PRDV Tactical OS</h1>
-    <div id="dateDisplay"></div>
-    <div class="date-nav">
-      <button onclick="changeDay(-1)">◀</button>
-      <button onclick="goToToday()">Today</button>
-      <button onclick="changeDay(1)">▶</button>
-    </div>
-  </header>
-
-  <section id="phaseBanner"></section>
-
-  <section id="workoutContainer"></section>
-
-  <section class="card">
-    <h2>Session Tracking</h2>
-    <div id="exerciseInputs"></div>
-    <button class="primary" onclick="saveSession()">Save Session</button>
-  </section>
-
-  <section class="card">
-    <h2>Recovery Inputs</h2>
-    <input id="sleepInput" placeholder="Sleep (hrs)">
-    <input id="fatigueInput" placeholder="Fatigue (1–10)">
-    <button onclick="updateRecovery()">Update Recovery</button>
-    <div id="recoveryOutput"></div>
-  </section>
-
-  <section class="card">
-    <h2>Selection Projection</h2>
-    <div id="selectionScore"></div>
-  </section>
-
+<div class="nav">
+  <button onclick="changeDay(-1)">◀</button>
+  <div id="dateDisplay"></div>
+  <button onclick="changeDay(1)">▶</button>
 </div>
 
-<script type="module" src="script.js"></script>
+<div id="phaseInfo" class="card"></div>
+<div id="workoutContainer"></div>
+
+<div class="card">
+  <h3>Update 2KM Time (seconds)</h3>
+  <input id="twoKmInput" placeholder="e.g. 470">
+  <button onclick="update2km()">Update</button>
+</div>
+
+<div class="card">
+  <h3>Weekly Calendar</h3>
+  <div id="calendarGrid"></div>
+</div>
+
+<div class="card">
+  <h3>Progress</h3>
+  <canvas id="progressChart"></canvas>
+</div>
+
+<div class="card">
+  <h3>Selection Probability</h3>
+  <div id="selectionScore"></div>
+</div>
+
+<script src="script.js"></script>
 </body>
 </html>
