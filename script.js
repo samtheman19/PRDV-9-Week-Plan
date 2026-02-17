@@ -1,175 +1,146 @@
-const START_DATE = new Date();
-const END_DATE = new Date("2026-04-27");
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
+import {
+  getAuth,
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  signOut,
+  onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
+import {
+  getFirestore,
+  collection,
+  doc,
+  setDoc
+} from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
 
+/* FIREBASE CONFIG */
+const firebaseConfig = {
+  apiKey: "AIzaSyD7sHTLny_kAtTN_xXmkovFC-GSTtFMeNo",
+  authDomain: "prdv-platform.firebaseapp.com",
+  projectId: "prdv-platform",
+  storageBucket: "prdv-platform.firebasestorage.app",
+  messagingSenderId: "578412239135",
+  appId: "1:578412239135:web:7680746ea4df63246df82a"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+/* AUTH */
+window.register = () =>
+  createUserWithEmailAndPassword(auth,email.value,password.value);
+
+window.login = () =>
+  signInWithEmailAndPassword(auth,email.value,password.value);
+
+window.logout = () => signOut(auth);
+
+onAuthStateChanged(auth,user=>{
+  document.getElementById("userStatus").innerText =
+    user ? "Logged in" : "Not logged in";
+});
+
+/* DATE SYSTEM */
+const START = new Date();
+const END = new Date("2026-04-27");
 let currentDate = new Date();
-let eliteMode = false;
 
 /* TIMER */
 let seconds = 0;
-let timerInterval = null;
+let timerInt = null;
 
-function startTimer() {
-  if (timerInterval) return;
-  timerInterval = setInterval(() => {
+window.startTimer = ()=>{
+  if(timerInt) return;
+  timerInt = setInterval(()=>{
     seconds++;
     updateTimer();
-  }, 1000);
-}
+  },1000);
+};
 
-function pauseTimer() {
-  clearInterval(timerInterval);
-  timerInterval = null;
-}
+window.pauseTimer = ()=>{
+  clearInterval(timerInt);
+  timerInt=null;
+};
 
-function endSession() {
+window.endSession = async ()=>{
   pauseTimer();
-  saveSession();
-  seconds = 0;
+  await saveSession();
+  seconds=0;
   updateTimer();
+};
+
+function updateTimer(){
+  const h = String(Math.floor(seconds/3600)).padStart(2,'0');
+  const m = String(Math.floor(seconds%3600/60)).padStart(2,'0');
+  const s = String(seconds%60).padStart(2,'0');
+  document.getElementById("timer").innerText=`${h}:${m}:${s}`;
 }
 
-function updateTimer() {
-  const hrs = String(Math.floor(seconds / 3600)).padStart(2,'0');
-  const mins = String(Math.floor((seconds % 3600)/60)).padStart(2,'0');
-  const secs = String(seconds % 60).padStart(2,'0');
-  document.getElementById("timer").innerText = `${hrs}:${mins}:${secs}`;
+/* READINESS ENGINE */
+function readiness(){
+  const sleep=parseFloat(sleepInput.value)||7;
+  const fatigue=parseInt(fatigueInput.value)||5;
+  let score = (sleep*10)-(fatigue*5);
+  let state = score>40?"GREEN":score>20?"AMBER":"RED";
+  document.getElementById("readinessStatus").innerText = state;
+  return state;
 }
 
-/* NAVIGATION */
-
-function toggleElite() {
-  eliteMode = !eliteMode;
-  render();
-}
-
-function changeDay(offset) {
-  currentDate.setDate(currentDate.getDate() + offset);
-  if (currentDate < START_DATE) currentDate = new Date(START_DATE);
-  if (currentDate > END_DATE) currentDate = new Date(END_DATE);
-  render();
-}
-
-function getWeek() {
-  const diff = Math.floor((currentDate - START_DATE)/(1000*60*60*24));
-  return Math.floor(diff/7)+1;
-}
-
-function getPhase(week) {
-  if (week <= 3) return "Base";
-  if (week <= 6) return "Build";
-  if (week <= 9) return "Peak";
-  return "Elite";
-}
-
-function formatDate(date) {
-  return date.toLocaleDateString("en-GB", {
-    weekday: "long",
-    day: "numeric",
-    month: "long",
-    year: "numeric"
-  });
-}
-
-/* WORKOUT ENGINE */
-
-function getWorkout() {
-  const day = currentDate.getDay();
-  if (day === 0) return {title:"Recovery", exercises:[]};
-
-  if (day === 1)
-    return {title:"Lower – Unilateral", exercises:[
-      {name:"Bulgarian Split Squat", sets:4},
-      {name:"Single Leg RDL", sets:3},
-      {name:"Lateral Lunge", sets:3},
-      {name:"Soleus Raise", sets:3}
-    ]};
-
-  if (day === 2)
-    return {title:"VO2 Intervals", exercises:[
-      {name:"400m Repeats", sets:6}
-    ]};
-
-  if (day === 3)
-    return {title:"Upper Strength", exercises:[
-      {name:"Pull Ups", sets:4},
-      {name:"Barbell Row", sets:4},
-      {name:"DB Bench", sets:3}
-    ]};
-
-  if (day === 4)
-    return {title:"Tempo Run", exercises:[
-      {name:"1km Tempo", sets:3}
-    ]};
-
-  if (day === 5)
-    return {title:"Conditioning", exercises:[
-      {name:"Ski 400m", sets:3},
-      {name:"Wall Balls", sets:3},
-      {name:"Row 400m", sets:3}
-    ]};
-
-  if (day === 6)
-    return {title:"Long Zone 2", exercises:[
-      {name:"Zone 2 Run", sets:1}
-    ]};
-}
-
-/* SAVE SESSION */
-
-function saveSession() {
-  const key = currentDate.toDateString();
-  localStorage.setItem(key, JSON.stringify({completed:true,time:seconds}));
+/* WORKOUT STRUCTURE */
+function workoutPlan(){
+  const day=currentDate.getDay();
+  if(day===1) return {title:"Lower – Unilateral",ex:["Bulgarian Split Squat","Single Leg RDL","Lateral Lunge","Soleus Raise"]};
+  if(day===2) return {title:"VO2 Intervals",ex:["400m Repeats x6"]};
+  if(day===3) return {title:"Upper Strength",ex:["Pull Ups","Barbell Row","DB Bench"]};
+  if(day===4) return {title:"Tempo Run",ex:["3 x 1km"]};
+  if(day===5) return {title:"Conditioning",ex:["Ski 400m","Wall Balls","Row 400m"]};
+  if(day===6) return {title:"Long Zone 2",ex:["70–90min steady"]};
+  return {title:"Recovery",ex:[]};
 }
 
 /* RENDER */
-
-function render() {
-
+function render(){
   document.getElementById("currentDate").innerText =
-    formatDate(currentDate);
+    currentDate.toDateString();
 
-  const week = getWeek();
-  const phase = getPhase(week);
-  const workout = getWorkout();
-  const card = document.getElementById("workoutCard");
-
-  let html = `
-    <div style="opacity:.6;margin-bottom:10px;">
-      Week ${week}/10 • ${phase}
-    </div>
-    <h2>${workout.title}</h2>
-  `;
-
-  workout.exercises.forEach(ex => {
-    html += `<div class="exercise"><h4>${ex.name}</h4>`;
-
-    for (let i=1;i<=ex.sets;i++) {
-      html += `
-        <div class="set-row">
-          <input placeholder="Set ${i} – reps / load / time">
-          <button onclick="startRest(90)">⏱</button>
-          <button onclick="this.classList.toggle('complete')">✓</button>
-        </div>
-      `;
+  const w=workoutPlan();
+  let html=`<h3>${w.title}</h3>`;
+  w.ex.forEach(e=>{
+    html+=`<div class="exercise"><strong>${e}</strong>`;
+    for(let i=1;i<=3;i++){
+      html+=`
+      <div class="set-row">
+        <input placeholder="Set ${i} reps/load">
+        <button onclick="this.classList.toggle('complete')">✓</button>
+      </div>`;
     }
-
-    html += `</div>`;
+    html+=`</div>`;
   });
-
-  card.innerHTML = html;
+  document.getElementById("workoutCard").innerHTML=html;
 }
 
-/* REST TIMER */
+/* SAVE TO FIREBASE */
+async function saveSession(){
+  const user=auth.currentUser;
+  if(!user) return;
 
-function startRest(sec) {
-  let remaining = sec;
-  const interval = setInterval(()=>{
-    remaining--;
-    if(remaining<=0){
-      clearInterval(interval);
-      alert("Rest complete");
+  await setDoc(
+    doc(db,"users",user.uid,"sessions",currentDate.toDateString()),
+    {
+      date:currentDate,
+      duration:seconds,
+      readiness:readiness()
     }
-  },1000);
+  );
 }
+
+/* NAV */
+window.changeDay=(o)=>{
+  currentDate.setDate(currentDate.getDate()+o);
+  if(currentDate<START)currentDate=new Date(START);
+  if(currentDate>END)currentDate=new Date(END);
+  render();
+};
 
 render();
